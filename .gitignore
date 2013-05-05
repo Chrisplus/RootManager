@@ -1,0 +1,4 @@
+
+*.cache
+
+RootManagerLib/gen/*
