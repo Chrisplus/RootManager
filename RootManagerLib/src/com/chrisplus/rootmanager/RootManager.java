@@ -19,18 +19,14 @@ public class RootManager {
 
   }
 
-  public static RootManager getInstance() {
+  public static synchronized RootManager getInstance() {
     if (instance == null) {
       instance = new RootManager();
     }
     return instance;
   }
 
-  private static void checkUIThread() {
-    if (Looper.myLooper() == Looper.getMainLooper()) {
-      throw new IllegalStateException("Please do not call this fuction on UI thread");
-    }
-  }
+
 
 
 }
