@@ -1,11 +1,11 @@
 package com.chrisplus.rootmanager;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
-import com.wandoujia.phoenix2.rootkit.RootKitController;
-import com.wandoujia.phoenix2.rootkit.execution.Shell;
+import com.chrisplus.rootmanager.execution.Shell;
 
-public abstract class Command implements CommandListner {
+public abstract class Command {
 
   private String[] commands;
   private boolean isFinished;
@@ -14,6 +14,7 @@ public abstract class Command implements CommandListner {
   private int id;
 
   /* Abstract function should be implemented by caller */
+
   public abstract void onUpdate(int id, String message);
 
   public abstract void onFinished(int id);
@@ -25,7 +26,7 @@ public abstract class Command implements CommandListner {
   }
 
   public Command(int timeout, String... commands) {
-    this.id = RootManagerUtils.generateCommandID();
+    this.id = RootUtils.generateCommandID();
     this.timeout = timeout;
     this.commands = commands;
   }
@@ -38,36 +39,32 @@ public abstract class Command implements CommandListner {
       this.notifyAll();
     }
   }
-  
+
   public void terminate(String reason) {
     try {
+      RootUtils.Log("Terminate all shells with reason " + reason);
       Shell.closeAll();
-      RootKitController.log("Terminating all shells.");
-      terminated(reason);
-    } catch (IOException e) {}
+      setExitCode(-1);
+    } catch (IOException e) {
+      e.printStackTrace();
+      RootUtils.Log("Terminate all shells and io exception happens");
+    }
   }
 
-  public void terminated(String reason) {
-    setExitCode(-1);
-    RootKitController.log("Command " + id + " did not finish.");
-  }
-
-  // waits for this command to finish
-  public void waitForFinish(int timeout) throws InterruptedException {
+  public int waitForFinish(long timeout) throws InterruptedException {
     synchronized (this) {
-      while (!finished) {
+      while (!isFinished) {
         this.wait(timeout);
-
-        if (!finished) {
-          finished = true;
-          RootKitController.log("Timeout Exception has occurred.");
+        if (!isFinished) {
+          isFinished = true;
+          RootUtils.Log("Timeout Exception has occurred.");
           terminate("Timeout Exception");
         }
       }
     }
+    return exitCode;
   }
 
-  // waits for this command to finish and returns the exit code
   public int exitCode(int timeout) throws InterruptedException {
     synchronized (this) {
       waitForFinish(timeout);
@@ -75,19 +72,30 @@ public abstract class Command implements CommandListner {
     return exitCode;
   }
 
-  // waits for this command to finish
-  public void waitForFinish() throws InterruptedException {
+  public int waitForFinish() throws InterruptedException {
     synchronized (this) {
       waitForFinish(timeout);
     }
+    return exitCode;
   }
 
-  // waits for this command to finish and returns the exit code
-  public int exitCode() throws InterruptedException {
-    synchronized (this) {
-      return exitCode(timeout);
+  public String getCommand() {
+    if (commands == null || commands.length == 0) {
+      return "";
     }
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < commands.length; i++) {
+      sb.append(commands[i]);
+      sb.append('\n');
+    }
+    String command = sb.toString();
+    RootUtils.Log("Sending command(s): " + command);
+    return command;
   }
 
+  public void writeCommanFOSOFOd(OutputStream out) throws IOException {
+    out.write(getCommand().getBytes());
+  }
 
 }

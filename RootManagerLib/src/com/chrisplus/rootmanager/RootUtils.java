@@ -9,7 +9,7 @@ import android.util.Log;
  * @author Chris
  * 
  */
-public class RootManagerUtils {
+public class RootUtils {
 
   private final static String TAG = "RootManager";
   private static int cmdID = 0;
@@ -52,7 +52,7 @@ public class RootManagerUtils {
    */
   public static int generateCommandID() {
     cmdID = cmdID + 1;
-    RootManagerUtils.Log("Return a command id " + cmdID);
+    RootUtils.Log("Return a command id " + cmdID);
     return cmdID;
   }
 }
