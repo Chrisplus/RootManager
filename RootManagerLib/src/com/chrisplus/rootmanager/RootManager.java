@@ -12,14 +12,10 @@ public class RootManager {
 
     private static RootManager instance;
 
-    /* constants */
-    private static final String[] SU_BINARY = {
-            "/system/bin", "/system/sbin", "/system/xbin",
-            "/vendor/bin", "/sbin"
-    };
-
-    /* The uesful members */
+    /* The useful members */
     private Boolean hasRooted = null;
+    private boolean hasGivenPermission = false;
+    private long lastPermissionCheck = -1;
 
     private RootManager() {
 
@@ -44,7 +40,7 @@ public class RootManager {
      */
     public boolean hasRooted() {
         if (hasRooted == null) {
-            for (String path : Const.SU_BINARY) {
+            for (String path : Constants.SU_BINARY_DIRS) {
                 File su = new File(path + "/su");
                 if (su != null && su.exists()) {
                     hasRooted = true;
@@ -57,8 +53,34 @@ public class RootManager {
         return hasRooted;
     }
 
+    /**
+     * Try to grant root permission.
+     * <p>
+     * This function may result in poping a prompt for users, wait for the
+     * user's choice and operation, return result then.
+     * </p>
+     * <p>
+     * For performance, the grant process will not be called and just return
+     * true if last try was successful in
+     * {@link Constants#PERMISSION_EXPIRE_TIME}.
+     * </p>
+     * 
+     * @return whether your app has been given the root permission access by
+     *         user.
+     */
     public boolean grantPermission() {
-        return false;
+        if (!hasGivenPermission) {
+            hasGivenPermission = accessRoot();
+            lastPermissionCheck = System.currentTimeMillis();
+        } else {
+            if (lastPermissionCheck < 0
+                    || System.currentTimeMillis() - lastPermissionCheck > Constants.PERMISSION_EXPIRE_TIME) {
+                hasGivenPermission = accessRoot();
+                lastPermissionCheck = System.currentTimeMillis();
+            }
+        }
+
+        return hasGivenPermission;
     }
 
     public OperationResult installPackage(String apkPath) {
@@ -119,6 +141,10 @@ public class RootManager {
 
     public void restartDevice() {
 
+    }
+
+    private boolean accessRoot() {
+        return false;
     }
 
 }
