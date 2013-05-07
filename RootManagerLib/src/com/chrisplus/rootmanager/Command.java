@@ -31,6 +31,10 @@ public abstract class Command {
     this.commands = commands;
   }
 
+  public int getID() {
+    return id;
+  }
+
   public void setExitCode(int code) {
     synchronized (this) {
       exitCode = code;
@@ -61,13 +65,6 @@ public abstract class Command {
           terminate("Timeout Exception");
         }
       }
-    }
-    return exitCode;
-  }
-
-  public int exitCode(int timeout) throws InterruptedException {
-    synchronized (this) {
-      waitForFinish(timeout);
     }
     return exitCode;
   }

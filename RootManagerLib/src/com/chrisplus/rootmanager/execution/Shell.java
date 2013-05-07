@@ -23,7 +23,7 @@ public class Shell {
   private static int shellTimeout = 10000;
   private static String error = "";
   private static final String token = "F*D^W@#FGF";
-  
+
   private static Shell rootShell = null;
   private static Shell shell = null;
   private static Shell customShell = null;
@@ -271,13 +271,9 @@ public class Shell {
     int read = 0;
     while (true) {
       String line = in.readLine();
-
-      // terminate on EOF
       if (line == null) {
         break;
       }
-
-      // Log.v("Shell", "Out; \"" + line + "\"");
       if (command == null) {
         if (read >= commands.size()) {
           if (close) {
@@ -290,7 +286,7 @@ public class Shell {
 
       int pos = line.indexOf(token);
       if (pos > 0) {
-        command.output(command.id, line.substring(0, pos));
+        command.onUpdate(command.getID(), line.substring(0, pos));
       }
       if (pos >= 0) {
         line = line.substring(pos);
@@ -312,18 +308,18 @@ public class Shell {
           }
         }
       }
-      command.output(command.id, line);
+      command.onUpdate(command.getID(), line);
     }
-    RootKitController.log("Read all output");
+    RootUtils.Log("Read all output");
     proc.waitFor();
     proc.destroy();
-    RootKitController.log("Shell destroyed");
+    RootUtils.Log("Shell destroyed");
 
     while (read < commands.size()) {
       if (command == null) {
         command = commands.get(read);
       }
-      command.terminated("Unexpected Termination.");
+      command.terminate("Unexpected Termination.");
       command = null;
       read++;
     }
@@ -363,7 +359,7 @@ public class Shell {
     close();
     if (commands.size() > 0) {
       Command command = commands.get(commands.size() - 1);
-      command.exitCode();
+      command.waitForFinish();
     }
   }
 
