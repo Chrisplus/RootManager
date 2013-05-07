@@ -1,7 +1,7 @@
 package com.chrisplus.rootmanager;
 
-import android.content.Context;
-import android.os.Looper;
+import java.io.File;
+
 
 /**
  * 
@@ -14,6 +14,12 @@ public class RootManager {
 
   private static RootManager instance;
 
+  /* constants */
+  private static final String[] SU_BINARY = {"/system/bin", "/system/sbin", "/system/xbin",
+      "/vendor/bin", "/sbin"};
+  
+  /* The uesful members */
+  private Boolean hasRooted = null;
   private RootManager() {
 
   }
@@ -25,8 +31,28 @@ public class RootManager {
     return instance;
   }
 
+  /**
+   * Try to check if the device has been rooted.
+   * <p>
+   * Generally speaking, a device which has been rooted successfully must have a binary file named
+   * SU. However, SU may not work well for those devices rooted unfinished.
+   * </p>
+   * 
+   * @return the result whether this device has been rooted.
+   */
   public boolean hasRooted() {
-    return false;
+    if (hasRooted == null) {
+      for (String path : Const.SU_BINARY) {
+        File su = new File(path + "/su");
+        if (su != null && su.exists()) {
+          hasRooted = true;
+        } else {
+          hasRooted = false;
+        }
+      }
+    }
+
+    return hasRooted;
   }
 
   public boolean grantPermission() {
@@ -58,6 +84,10 @@ public class RootManager {
   }
 
   public boolean copyFiles(String source, String destination, boolean withRootPermission) {
+    return false;
+  }
+
+  public boolean remount(String path, String mountType) {
     return false;
   }
 
