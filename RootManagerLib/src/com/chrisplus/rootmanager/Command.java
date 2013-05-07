@@ -94,7 +94,7 @@ public abstract class Command {
     return command;
   }
 
-  public void writeCommanFOSOFOd(OutputStream out) throws IOException {
+  public void writeCommand(OutputStream out) throws IOException {
     out.write(getCommand().getBytes());
   }
 

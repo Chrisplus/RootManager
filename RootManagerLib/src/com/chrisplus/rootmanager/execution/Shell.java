@@ -1,26 +1,3 @@
-/*
- * This file is part of the RootKit Project: http://code.google.com/p/RootKit/
- * Copyright (c) 2012 Stephen Erickson, Chris Ravenscroft, Dominik Schuermann, Adam Shanks
- * This code is dual-licensed under the terms of the Apache License Version 2.0 and
- * the terms of the General Public License (GPL) Version 2.
- * You may use this code according to either of these licenses as is most appropriate
- * for your project on a case-by-case basis.
- * The terms of each license can be found in the root directory of this project's repository as well
- * as at:
- * * http://www.apache.org/licenses/LICENSE-2.0
- * * http://www.gnu.org/licenses/gpl-2.0.txt
- * Unless required by applicable law or agreed to in writing, software
- * distributed under these Licenses is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See each License for the specific language governing permissions and
- * limitations under that License.
- */
-
-/*
- * Special thanks to Jeremy Lakeman for the following code and for teaching me something new.
- * Stephen
- */
-
 package com.chrisplus.rootmanager.execution;
 
 import java.io.DataInputStream;
@@ -30,8 +7,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import com.wandoujia.phoenix2.rootkit.RootKitController;
-import com.wandoujia.phoenix2.rootkit.exceptions.RootDeniedException;
+import com.chrisplus.rootmanager.Command;
+import com.chrisplus.rootmanager.RootUtils;
+import com.chrisplus.rootmanager.exception.PermissionException;
+
 
 public class Shell {
 
@@ -44,13 +23,14 @@ public class Shell {
   private static int shellTimeout = 10000;
   private static String error = "";
   private static final String token = "F*D^W@#FGF";
+  
   private static Shell rootShell = null;
   private static Shell shell = null;
   private static Shell customShell = null;
 
-  private Shell(String cmd) throws IOException, TimeoutException, RootDeniedException {
+  private Shell(String cmd) throws IOException, TimeoutException, PermissionException {
 
-    RootKitController.log("Starting shell: " + cmd);
+    RootUtils.Log("Starting shell: " + cmd);
 
     proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
     in = new DataInputStream(proc.getInputStream());
@@ -69,8 +49,7 @@ public class Shell {
       }
       if (worker.exit == -42) {
         proc.destroy();
-
-        throw new RootDeniedException("Root Access Denied");
+        throw new PermissionException("Root Access Denied");
       } else {
         new Thread(input, "Shell Input").start();
         new Thread(output, "Shell Output").start();
@@ -92,51 +71,50 @@ public class Shell {
     }
   }
 
-  public static Shell startRootShell() throws IOException, TimeoutException, RootDeniedException {
+  public static Shell startRootShell() throws IOException, TimeoutException, PermissionException {
     return Shell.startRootShell(10000);
   }
 
   public static Shell startRootShell(int timeout) throws IOException, TimeoutException,
-      RootDeniedException {
+      PermissionException {
     Shell.shellTimeout = timeout;
 
     if (rootShell == null) {
-      RootKitController.log("Starting Root Shell!");
+      RootUtils.Log("Starting Root Shell!");
       String cmd = "su";
-      // keep prompting the user until they accept, we hit 3 retries, or
-      // the attempt fails quickly
+
       int retries = 0;
       while (rootShell == null) {
         try {
           rootShell = new Shell(cmd);
         } catch (IOException e) {
-          if (retries++ >= 3) {
-            RootKitController.log("IOException, could not start shell");
+          if (retries++ >= 5) {
+            RootUtils.Log("Could not start shell");
             throw e;
           }
         }
       }
     } else {
-      RootKitController.log("Using Existing Root Shell!");
+      RootUtils.Log("Using Existing Root Shell!");
     }
 
     return rootShell;
   }
 
   public static Shell startCustomShell(String shellPath) throws IOException, TimeoutException,
-      RootDeniedException {
+      PermissionException {
     return Shell.startCustomShell(shellPath, 10000);
   }
 
   public static Shell startCustomShell(String shellPath, int timeout) throws IOException,
-      TimeoutException, RootDeniedException {
+      TimeoutException, PermissionException {
     Shell.shellTimeout = timeout;
 
     if (customShell == null) {
-      RootKitController.log("Starting Custom Shell!");
+      RootUtils.Log("Starting Custom Shell!");
       customShell = new Shell(shellPath);
     } else {
-      RootKitController.log("Using Existing Custom Shell!");
+      RootUtils.Log("Using Existing Custom Shell!");
     }
 
     return customShell;
@@ -151,20 +129,20 @@ public class Shell {
 
     try {
       if (shell == null) {
-        RootKitController.log("Starting Shell!");
+        RootUtils.Log("Starting Shell!");
         shell = new Shell("/system/bin/sh");
       } else {
-        RootKitController.log("Using Existing Shell!");
+        RootUtils.Log("Using Existing Shell!");
       }
       return shell;
-    } catch (RootDeniedException e) {
+    } catch (PermissionException e) {
       // Root Denied should never be thrown.
       throw new IOException();
     }
   }
 
   public static void runRootCommand(Command command) throws IOException, TimeoutException,
-      RootDeniedException {
+      PermissionException {
     startRootShell().add(command);
   }
 
@@ -240,7 +218,7 @@ public class Shell {
       try {
         writeCommands();
       } catch (IOException e) {
-        RootKitController.log(e.getMessage());
+        RootUtils.Log(e.getMessage());
       }
     }
   };
@@ -267,12 +245,12 @@ public class Shell {
           out.write("\nexit 0\n".getBytes());
           out.flush();
           out.close();
-          RootKitController.log("Closing shell");
+          RootUtils.Log("Closing shell");
           return;
         }
       }
     } catch (InterruptedException e) {
-      RootKitController.log(e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -281,9 +259,9 @@ public class Shell {
       try {
         readOutput();
       } catch (IOException e) {
-        RootKitController.log(e.getMessage());
+        e.printStackTrace();
       } catch (InterruptedException e) {
-        RootKitController.log(e.getMessage());
+        e.printStackTrace();
       }
     }
   };
@@ -352,9 +330,7 @@ public class Shell {
   }
 
   public Command add(Command command) throws IOException {
-    if (close)
-      throw new IllegalStateException(
-          "Unable to add commands to a closed shell");
+    if (close) throw new IllegalStateException("Unable to add commands to a closed shell");
     synchronized (commands) {
       commands.add(command);
       commands.notifyAll();
