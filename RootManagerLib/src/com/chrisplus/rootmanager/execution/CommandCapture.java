@@ -25,22 +25,21 @@ package com.chrisplus.rootmanager.execution;
 
 import com.wandoujia.phoenix2.rootkit.RootKitController;
 
-
 public class CommandCapture extends Command {
-  private StringBuilder sb = new StringBuilder();
+    private StringBuilder sb = new StringBuilder();
 
-  public CommandCapture(int id, String... command) {
-    super(id, command);
-  }
+    public CommandCapture(int id, String... command) {
+        super(id, command);
+    }
 
-  @Override
-  public void output(int id, String line) {
-    sb.append(line).append('\n');
-    RootKitController.log("ID: " + id + ", " + line);
-  }
+    @Override
+    public void output(int id, String line) {
+        sb.append(line).append('\n');
+        RootKitController.log("ID: " + id + ", " + line);
+    }
 
-  @Override
-  public String toString() {
-    return sb.toString();
-  }
+    @Override
+    public String toString() {
+        return sb.toString();
+    }
 }

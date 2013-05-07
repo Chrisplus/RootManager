@@ -27,33 +27,34 @@ import android.util.Log;
 
 public class Runner extends Thread {
 
-  private static final String LOG_TAG = "RootKit::Runner";
+    private static final String LOG_TAG = "RootKit::Runner";
 
-  Context context;
-  String binaryName;
-  String parameter;
+    Context context;
+    String binaryName;
+    String parameter;
 
-  public Runner(Context context, String binaryName, String parameter) {
-    this.context = context;
-    this.binaryName = binaryName;
-    this.parameter = parameter;
-  }
-
-  public void run() {
-    String privateFilesPath = null;
-    try {
-      privateFilesPath = context.getFilesDir().getCanonicalPath();
-    } catch (IOException e) {
-      e.printStackTrace();
+    public Runner(Context context, String binaryName, String parameter) {
+        this.context = context;
+        this.binaryName = binaryName;
+        this.parameter = parameter;
     }
-    if (privateFilesPath != null) {
-      try {
-        CommandCapture command =
-            new CommandCapture(0, privateFilesPath + "/" + binaryName + " " + parameter);
-        Shell.startRootShell().add(command);
-        command.waitForFinish();
-      } catch (Exception e) {}
+
+    public void run() {
+        String privateFilesPath = null;
+        try {
+            privateFilesPath = context.getFilesDir().getCanonicalPath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (privateFilesPath != null) {
+            try {
+                CommandCapture command =
+                        new CommandCapture(0, privateFilesPath + "/" + binaryName + " " + parameter);
+                Shell.startRootShell().add(command);
+                command.waitForFinish();
+            } catch (Exception e) {
+            }
+        }
     }
-  }
 
 }
