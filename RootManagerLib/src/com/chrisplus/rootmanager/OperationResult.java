@@ -1,58 +1,49 @@
 
 package com.chrisplus.rootmanager;
 
-import android.text.TextUtils;
-
 /**
  * This class is used to store a root operation result which contains the result
  * of execution and details information.
  * 
  * @author Chris Jiang
  */
-public class OperationResult {
+public enum OperationResult {
+
+    RUNCOMMAND_SUCCESS(90, "Command Executed Successfully"),
+    RUNCOMMAND_FAILED_TIMEOUT(401, "Run Command Timeout"),
+    RUNCOMMAND_FAILED_DENIED(402, "Run Command Permission Denied"),
+    RUNCOMMAND_FAILED_INTERRUPTED(403, "Run Command Interrupted"),
+
+    INSTALL_SUCCESS(80, "Application installed Successfully"),
+    INSTALL_FAILED_NOSPACE(404, "Install Failed because of no enough space"),
+    INSTALL_FAILED_WRONGCONTAINER(405, "Install Failed Wrong container"),
+    INSTALL_FAILED_WRONGCER(406, "Install Failed Wrong Cer or version"),
+    INSTALL_FIALED(407, "Install Failed"),
+
+    UNINSTALL_SUCCESS(70, "Application uninstall Successfully"),
+    UNINSTALL_FAILED(408, "Uninstall App Failed");
+
+    private int statusCode;
     private String message;
-    private boolean result;
+
+    private OperationResult(int sc, String msg) {
+        statusCode = sc;
+        message = msg;
+    }
 
     public String getMessage() {
         return message;
     }
 
+    public int getStatusCode() {
+        return statusCode;
+    }
+
     public boolean getResult() {
-        return result;
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    private OperationResult() {
-
-    }
-
-    public final static class Builder {
-        private String msg = null;
-        private Boolean res = null;
-
-        public Builder setResult(boolean result) {
-            res = result;
-            return this;
-        }
-
-        public Builder setMessage(String message) {
-            msg = message;
-            return this;
-        }
-
-        public OperationResult build() {
-            if (res != null && !TextUtils.isEmpty(msg)) {
-                OperationResult result = new OperationResult();
-                result.message = msg;
-                result.result = res;
-
-                return result;
-            }
-
-            return null;
+        if (statusCode <= 100) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
