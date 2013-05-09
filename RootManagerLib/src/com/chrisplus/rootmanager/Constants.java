@@ -42,4 +42,9 @@ public class Constants {
      */
     public static final String COMMAND_UNINSTALL = "pm uninstall ";
 
+    /**
+     * The default command timeout is 5 min.
+     */
+    public static final int COMMAND_TIMEOUT = 1000 * 50 * 5;
+
 }

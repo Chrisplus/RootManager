@@ -56,4 +56,13 @@ public class RootUtils {
         RootUtils.Log("Return a command id " + cmdID);
         return cmdID;
     }
+
+    /**
+     * Check if command need patch.
+     * 
+     * @return
+     */
+    public static boolean isNeedPathSDK() {
+        return android.os.Build.VERSION.SDK_INT == 17;
+    }
 }

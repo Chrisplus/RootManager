@@ -23,7 +23,7 @@ public abstract class Command {
     public abstract void onFailed(int id, int errorCode);
 
     public Command(String... commands) {
-        this(Const.TIMEOUT, commands);
+        this(Constants.COMMAND_TIMEOUT, commands);
     }
 
     public Command(int timeout, String... commands) {

@@ -13,6 +13,7 @@ public enum OperationResult {
     RUNCOMMAND_FAILED_TIMEOUT(401, "Run Command Timeout"),
     RUNCOMMAND_FAILED_DENIED(402, "Run Command Permission Denied"),
     RUNCOMMAND_FAILED_INTERRUPTED(403, "Run Command Interrupted"),
+    RUNCOMMAND_FAILED(409, "Run Command Failed"),
 
     INSTALL_SUCCESS(80, "Application installed Successfully"),
     INSTALL_FAILED_NOSPACE(404, "Install Failed because of no enough space"),

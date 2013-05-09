@@ -2,6 +2,13 @@
 package com.chrisplus.rootmanager;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import com.chrisplus.rootmanager.exception.PermissionException;
+import com.chrisplus.rootmanager.execution.Shell;
+
+import android.text.TextUtils;
 
 /**
  * This class is the main interface of RootManager.
@@ -83,16 +90,162 @@ public class RootManager {
         return hasGivenPermission;
     }
 
+    /**
+     * Install a user app on the device.
+     * <p>
+     * For performance, do NOT call this function on UI thread,
+     * {@link IllegalStateException} will be thrown if you do so.
+     * </p>
+     * 
+     * @param apkPath the file path of apk, do not start with <I>file://</I>.
+     * @return The result of run command operation or install operation.
+     */
     public OperationResult installPackage(String apkPath) {
-        return null;
+        return installPackage(apkPath, "a");
     }
 
+    /**
+     * Install a user app on the device.
+     * <p>
+     * For performance, do NOT call this function on UI thread,
+     * {@link IllegalStateException} will be thrown if you do so.
+     * </p>
+     * 
+     * @param apkPath the file path of apk, do not start with <I>file://</I>.
+     * @param installLocation the location of install.
+     *            <ul>
+     *            <li>auto means chooing the install location automatic.</li>
+     *            <li>ex means install the app on sdcard.</li>
+     *            <li>in means install the app in phone ram</li>
+     *            </ul>
+     * @return The result of run command operation or install operation.
+     */
     public OperationResult installPackage(String apkPath, String installLocation) {
-        return null;
+
+        if (TextUtils.isEmpty(apkPath)) {
+            return OperationResult.INSTALL_FIALED;
+        }
+
+        RootUtils.checkUIThread();
+
+        String command = Constants.COMMAND_INSTALL;
+        if (RootUtils.isNeedPathSDK()) {
+            command = Constants.COMMAND_INSTALL_PATCH + command;
+        }
+
+        command = command + apkPath;
+
+        if (TextUtils.isEmpty(installLocation)) {
+            if (installLocation.equalsIgnoreCase("ex")) {
+                command = command + Constants.COMMAND_INSTALL_LOCATION_EXTERNAL;
+            } else if (installLocation.equalsIgnoreCase("in")) {
+                command = command + Constants.COMMAND_INSTALL_LOCATION_INTERNAL;
+            }
+        }
+
+        OperationResult result = null;
+        // TODO fill the install command call back.
+        Command commandImpl = new Command(command) {
+
+            @Override
+            public void onUpdate(int id, String message) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFinished(int id) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFailed(int id, int errorCode) {
+                // TODO Auto-generated method stub
+
+            }
+
+        };
+
+        try {
+            Shell.startRootShell().add(commandImpl).waitForFinish();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+        }
+
+        return result;
+
     }
 
+    /**
+     * Uninstall a user app using its package name.
+     * <p>
+     * For performance, do NOT call this function on UI thread,
+     * {@link IllegalStateException} will be thrown if you do so.
+     * </p>
+     * 
+     * @param packageName the app's package name you want to uninstall.
+     * @return The result of run command operation or uninstall operation.
+     */
     public OperationResult uninstallPackage(String packageName) {
-        return null;
+        if (TextUtils.isEmpty(packageName)) {
+            return null;
+        }
+
+        RootUtils.checkUIThread();
+
+        String command = Constants.COMMAND_UNINSTALL + packageName;
+        OperationResult result = null;
+        // TODO fill in uninstall function.
+        Command commandImpl = new Command(command) {
+
+            @Override
+            public void onUpdate(int id, String message) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFinished(int id) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFailed(int id, int errorCode) {
+                // TODO Auto-generated method stub
+
+            }
+
+        };
+
+        try {
+            Shell.startRootShell().add(commandImpl).waitForFinish();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+        }
+
+        return result;
     }
 
     public OperationResult uninstallSystemApp(String packageName) {
@@ -124,11 +277,76 @@ public class RootManager {
     }
 
     public OperationResult runCommand(String command) {
-        return null;
+        if (TextUtils.isEmpty(command)) {
+            return null;
+        }
+
+        OperationResult result = null;
+        Command commandImpl = new Command(command) {
+
+            @Override
+            public void onUpdate(int id, String message) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFinished(int id) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onFailed(int id, int errorCode) {
+                // TODO Auto-generated method stub
+
+            }
+
+        };
+
+        try {
+            Shell.startRootShell().add(commandImpl).waitForFinish();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+        }
+
+        return result;
     }
 
     public OperationResult runCommand(Command command) {
-        return null;
+        if (command == null) {
+            return null;
+        }
+
+        OperationResult result = null;
+
+        try {
+            Shell.startRootShell().add(command).waitForFinish();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+        }
+
+        return result;
     }
 
     public boolean isProcessRunning(String processName) {
