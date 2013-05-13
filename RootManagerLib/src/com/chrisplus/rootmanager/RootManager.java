@@ -5,10 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import android.text.TextUtils;
+
 import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.execution.Shell;
-
-import android.text.TextUtils;
+import com.chrisplus.rootmanager.internal.Remounter;
 
 /**
  * This class is the main interface of RootManager.
@@ -66,11 +67,6 @@ public class RootManager {
      * This function may result in poping a prompt for users, wait for the
      * user's choice and operation, return result then.
      * </p>
-     * <p>
-     * For performance, the grant process will not be called and just return
-     * true if last try was successful in
-     * {@link Constants#PERMISSION_EXPIRE_TIME}.
-     * </p>
      * 
      * @return whether your app has been given the root permission access by
      *         user.
@@ -123,7 +119,7 @@ public class RootManager {
     public OperationResult installPackage(String apkPath, String installLocation) {
 
         if (TextUtils.isEmpty(apkPath)) {
-            return OperationResult.INSTALL_FIALED;
+            return OperationResult.FAILED;
         }
 
         RootUtils.checkUIThread();
@@ -143,7 +139,7 @@ public class RootManager {
             }
         }
 
-        OperationResult result = null;
+        OperationResult result = OperationResult.INSTALL_FIALED;
         // TODO fill the install command call back.
         Command commandImpl = new Command(command) {
 
@@ -199,13 +195,13 @@ public class RootManager {
      */
     public OperationResult uninstallPackage(String packageName) {
         if (TextUtils.isEmpty(packageName)) {
-            return null;
+            return OperationResult.FAILED;
         }
 
         RootUtils.checkUIThread();
 
         String command = Constants.COMMAND_UNINSTALL + packageName;
-        OperationResult result = null;
+        OperationResult result = OperationResult.UNINSTALL_FAILED;
         // TODO fill in uninstall function.
         Command commandImpl = new Command(command) {
 
@@ -248,37 +244,198 @@ public class RootManager {
         return result;
     }
 
-    public OperationResult uninstallSystemApp(String packageName) {
-        return null;
+    /**
+     * Uninstall a system app.
+     * <p>
+     * For performance, do NOT call this function on UI thread,
+     * {@link IllegalStateException} will be thrown if you do so.
+     * </p>
+     * 
+     * @param apkPath the source apk path of system app.
+     * @return The result of run command operation or uninstall operation.
+     */
+    public OperationResult uninstallSystemApp(String apkPath) {
+        RootUtils.checkUIThread();
+        if (TextUtils.isEmpty(apkPath)) {
+            return OperationResult.FAILED;
+        }
+
+        if (remount("/system/", "rw")) {
+            File apkFile = new File(apkPath);
+            if (apkFile.exists()) {
+                return runCommand("rm '" + apkPath + "'");
+            }
+        }
+
+        return OperationResult.FAILED;
     }
 
-    public OperationResult installBinary(String filePath) {
-        return null;
+    /**
+     * Install a binary file into <I>"/system/bin/"</I>
+     * 
+     * @param filePath The target of the binary file.
+     * @return the operation result.
+     */
+    public boolean installBinary(String filePath) {
+        if (TextUtils.isEmpty(filePath)) {
+            return false;
+        }
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return false;
+        }
+
+        return copyFile(filePath, "/system/bin/");
     }
 
-    public OperationResult removeBinary(String binaryName) {
-        return null;
+    /**
+     * Uninstall a binary from <I>"/system/bin/"</I>
+     * 
+     * @param fileName, the name of target file.
+     * @return the operation result.
+     */
+    public boolean removeBinary(String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            return false;
+        }
+
+        File file = new File("/system/bin/" + fileName);
+        if (!file.exists()) {
+            return false;
+        }
+
+        if (remount("/system/", "rw")) {
+            return runCommand("rm '" + "/system/bin/" + fileName + "'").getResult();
+        } else {
+            return false;
+        }
+
     }
 
-    public boolean copyFiles(String source, String destination, boolean withRootPermission) {
-        return false;
+    /**
+     * Copy a file into destination dir.
+     * <p>
+     * Because Android do not support <I>"cp"</I> command by default,
+     * <i>"cat source > destination"</i> will be used.
+     * </p>
+     * 
+     * @param source the source file path.
+     * @param destinationDir the destination dir path.
+     * @return the operation result.
+     */
+    public boolean copyFile(String source, String destinationDir) {
+        if (TextUtils.isEmpty(destinationDir) || TextUtils.isEmpty(source)) {
+            return false;
+        }
+
+        File sourceFile = new File(source);
+        File desFile = new File(destinationDir);
+        if (!sourceFile.exists() || !desFile.isDirectory()) {
+            return false;
+        }
+
+        if (remount(destinationDir, "rw")) {
+            return runCommand("cat '" + source + "' > " + destinationDir).getResult();
+        } else {
+            return false;
+        }
+
     }
 
+    /**
+     * Remount a path file as the type.
+     * 
+     * @param path the path you want to remount
+     * @param mountType the mount type, including, <i>"r", "w", "rw"</i>
+     * @return the operation result.
+     */
     public boolean remount(String path, String mountType) {
-        return false;
+        if (TextUtils.isEmpty(path) || TextUtils.isEmpty(mountType)) {
+            return false;
+        }
+
+        if (mountType.equalsIgnoreCase("r") || mountType.equalsIgnoreCase("w")
+                || mountType.equalsIgnoreCase("rw") || mountType.equalsIgnoreCase("wr")) {
+            return Remounter.remount(path, mountType);
+        } else {
+            return false;
+        }
+
     }
 
-    public OperationResult runBinary(String binaryName) {
-        return null;
+    /**
+     * Run a binary which exit in <i>"/system/bin/"</i>
+     * 
+     * @param binaryName the file name of binary, containing params if
+     *            necessary.
+     * @return the operation result.
+     */
+    public OperationResult runBinBinary(String binaryName) {
+        if (TextUtils.isEmpty(binaryName)) {
+            return OperationResult.FAILED;
+        }
+        return runBinary("/system/bin/" + binaryName);
     }
 
-    public OperationResult runBinary(String binaryName, String params) {
-        return null;
+    /**
+     * Run a binary file.
+     * 
+     * @param path the file path of binary, containing params if necessary.
+     * @return the operation result.
+     */
+    public OperationResult runBinary(String path) {
+        if (TextUtils.isEmpty(path)) {
+            return OperationResult.FAILED;
+        }
+
+        OperationResult result = OperationResult.FAILED;
+
+        Command commandImpl = new Command(path) {
+
+            @Override
+            public void onUpdate(int id, String message) {
+            }
+
+            @Override
+            public void onFinished(int id) {
+
+            }
+
+            @Override
+            public void onFailed(int id, int errorCode) {
+
+            }
+        };
+
+        try {
+            Shell.startRootShell().add(commandImpl).waitForFinish();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+        }
+
+        return result;
     }
 
+    /**
+     * Run a command in default shell.
+     * 
+     * @param command the command string.
+     * @return the operation result.
+     */
     public OperationResult runCommand(String command) {
         if (TextUtils.isEmpty(command)) {
-            return null;
+            return OperationResult.FAILED;
         }
 
         OperationResult result = null;
@@ -323,32 +480,6 @@ public class RootManager {
         return result;
     }
 
-    public OperationResult runCommand(Command command) {
-        if (command == null) {
-            return null;
-        }
-
-        OperationResult result = null;
-
-        try {
-            Shell.startRootShell().add(command).waitForFinish();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
-        } catch (IOException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED;
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
-        } catch (PermissionException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
-        }
-
-        return result;
-    }
-
     public boolean isProcessRunning(String processName) {
         return false;
     }
@@ -361,8 +492,52 @@ public class RootManager {
 
     }
 
-    private boolean accessRoot() {
-        return false;
-    }
+    private static boolean accessRoot = false;
 
+    private boolean accessRoot() {
+
+        boolean result = false;
+        accessRoot = false;
+
+        Command commandImpl = new Command("id") {
+
+            @Override
+            public void onUpdate(int id, String message) {
+                if (message != null && message.toLowerCase().contains("uid=0")) {
+                    accessRoot = true;
+                }
+            }
+
+            @Override
+            public void onFinished(int id) {
+
+            }
+
+            @Override
+            public void onFailed(int id, int errorCode) {
+
+            }
+
+        };
+
+        try {
+            Shell.startRootShell().add(commandImpl).waitForFinish();
+            result = accessRoot;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            result = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            result = false;
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            result = false;
+        } catch (PermissionException e) {
+            e.printStackTrace();
+            result = false;
+        }
+
+        return result;
+
+    }
 }

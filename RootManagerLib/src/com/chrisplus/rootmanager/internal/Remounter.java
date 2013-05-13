@@ -19,109 +19,152 @@
 package com.chrisplus.rootmanager.internal;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import android.util.Log;
-import com.wandoujia.phoenix2.rootkit.RootKitConstants;
-import com.wandoujia.phoenix2.rootkit.RootKitController;
-import com.wandoujia.phoenix2.rootkit.containers.Mount;
-import com.wandoujia.phoenix2.rootkit.execution.CommandCapture;
-import com.wandoujia.phoenix2.rootkit.execution.Shell;
 
+import com.chrisplus.rootmanager.Command;
+import com.chrisplus.rootmanager.containers.Mount;
+import com.chrisplus.rootmanager.exception.PermissionException;
+import com.chrisplus.rootmanager.execution.Shell;
+
+/**
+ * The remounter.
+ * 
+ * @author Chris Jiang
+ */
 public class Remounter {
+    private static final String MOUNT_FILE = "/proc/mounts";
 
-    public boolean remount(String file, String mountType) {
+    public static boolean remount(String file, String mountType) {
 
-        // if the path has a trailing slash get rid of it.
         if (file.endsWith("/") && !file.equals("/")) {
             file = file.substring(0, file.lastIndexOf("/"));
         }
-        // Make sure that what we are trying to remount is in the mount list.
-        boolean foundMount = false;
-        while (!foundMount) {
-            try {
-                for (Mount mount : RootKitController.getMounts()) {
-                    RootKitController.log(mount.getMountPoint().toString());
 
-                    if (file.equals(mount.getMountPoint().toString())) {
-                        foundMount = true;
-                        break;
-                    }
+        boolean foundMount = false;
+
+        List<Mount> mounts = getMounts();
+        if (mounts == null || mounts.isEmpty()) {
+            return false;
+        }
+
+        while (!foundMount) {
+            for (Mount mount : mounts) {
+                if (file.equals(mount.getMountPoint().toString())) {
+                    foundMount = true;
+                    break;
                 }
-            } catch (Exception e) {
-                return false;
             }
             if (!foundMount) {
-                try {
-                    file = (new File(file).getParent()).toString();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
+                file = (new File(file).getParent()).toString();
             }
         }
-        Mount mountPoint = findMountPointRecursive(file);
 
-        RootKitController.log("Remounting " + mountPoint.getMountPoint().getAbsolutePath() + " as "
-                + mountType.toLowerCase());
+        Mount mountPoint = getMountPoint(file);
+
         final boolean isMountMode = mountPoint.getFlags().contains(mountType.toLowerCase());
 
         if (!isMountMode) {
-            // grab an instance of the internal class
+
+            Command command = new Command("busybox mount -o remount," + mountType.toLowerCase()
+                    + " " + mountPoint.getDevice().getAbsolutePath() + " "
+                    + mountPoint.getMountPoint().getAbsolutePath(), "toolbox mount -o remount,"
+                    + mountType.toLowerCase() + " " + mountPoint.getDevice().getAbsolutePath()
+                    + " " + mountPoint.getMountPoint().getAbsolutePath(), "mount -o remount,"
+                    + mountType.toLowerCase() + " " + mountPoint.getDevice().getAbsolutePath()
+                    + " " + mountPoint.getMountPoint().getAbsolutePath(),
+                    "/system/bin/toolbox mount -o remount," + mountType.toLowerCase() + " "
+                            + mountPoint.getDevice().getAbsolutePath() + " "
+                            + mountPoint.getMountPoint().getAbsolutePath()) {
+
+                @Override
+                public void onUpdate(int id, String message) {
+
+                }
+
+                @Override
+                public void onFinished(int id) {
+
+                }
+
+                @Override
+                public void onFailed(int id, int errorCode) {
+
+                }
+
+            };
+
             try {
-                CommandCapture command =
-                        new CommandCapture(0,
-                                "busybox mount -o remount," + mountType.toLowerCase() + " "
-                                        + mountPoint.getDevice().getAbsolutePath() + " "
-                                        + mountPoint.getMountPoint().getAbsolutePath(),
-                                "toolbox mount -o remount," + mountType.toLowerCase() + " "
-                                        + mountPoint.getDevice().getAbsolutePath() + " "
-                                        + mountPoint.getMountPoint().getAbsolutePath(),
-                                "mount -o remount," + mountType.toLowerCase() + " "
-                                        + mountPoint.getDevice().getAbsolutePath() + " "
-                                        + mountPoint.getMountPoint().getAbsolutePath(),
-                                "/system/bin/toolbox mount -o remount," + mountType.toLowerCase()
-                                        + " "
-                                        + mountPoint.getDevice().getAbsolutePath() + " "
-                                        + mountPoint.getMountPoint().getAbsolutePath()
-                        );
-
-                Shell.startRootShell().add(command);
-                command.waitForFinish();
-
-            } catch (Exception e) {
+                Shell.startRootShell().add(command).waitForFinish();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            } catch (PermissionException e) {
+                e.printStackTrace();
             }
 
-            mountPoint = findMountPointRecursive(file);
         }
 
-        Log.i(RootKitConstants.TAG, mountPoint.getFlags() + " AND " + mountType.toLowerCase());
+        mountPoint = getMountPoint(file);
+
         if (mountPoint.getFlags().contains(mountType.toLowerCase())) {
-            RootKitController.log(mountPoint.getFlags().toString());
             return true;
         } else {
-            RootKitController.log(mountPoint.getFlags().toString());
             return false;
         }
     }
 
-    private Mount findMountPointRecursive(String file) {
-        try {
-            ArrayList<Mount> mounts = RootKitController.getMounts();
-            for (File path = new File(file); path != null;) {
-                for (Mount mount : mounts) {
-                    if (mount.getMountPoint().equals(path)) {
-                        return mount;
-                    }
+    private static Mount getMountPoint(String file) {
+
+        List<Mount> mounts = getMounts();
+        if (mounts == null || mounts.isEmpty()) {
+            return null;
+        }
+
+        for (File path = new File(file); path != null;) {
+            for (Mount mount : mounts) {
+                if (mount.getMountPoint().equals(path)) {
+                    return mount;
                 }
             }
+        }
+
+        return null;
+    }
+
+    private static List<Mount> getMounts() {
+
+        LineNumberReader lnr = null;
+
+        try {
+            lnr = new LineNumberReader(new FileReader(MOUNT_FILE));
+        } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
             return null;
+        }
+
+        String line;
+        ArrayList<Mount> mounts = new ArrayList<Mount>();
+        try {
+            while ((line = lnr.readLine()) != null) {
+                String[] fields = line.split(" ");
+                mounts.add(new Mount(new File(fields[0]), new File(fields[1]), fields[2], fields[3]));
+            }
+            lnr.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+
+        return mounts;
     }
 }
