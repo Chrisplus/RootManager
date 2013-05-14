@@ -16,7 +16,7 @@
  * limitations under that License.
  */
 
-package com.chrisplus.rootmanager.containers;
+package com.chrisplus.rootmanager.container;
 
 import java.io.File;
 import java.util.Arrays;

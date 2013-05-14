@@ -1,5 +1,5 @@
 
-package com.chrisplus.rootmanager;
+package com.chrisplus.rootmanager.container;
 
 /**
  * This class is used to store a root operation result which contains the result

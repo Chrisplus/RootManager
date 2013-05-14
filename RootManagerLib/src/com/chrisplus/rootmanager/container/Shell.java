@@ -1,5 +1,5 @@
 
-package com.chrisplus.rootmanager.execution;
+package com.chrisplus.rootmanager.container;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,9 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import com.chrisplus.rootmanager.Command;
-import com.chrisplus.rootmanager.RootUtils;
 import com.chrisplus.rootmanager.exception.PermissionException;
+import com.chrisplus.rootmanager.utils.RootUtils;
 
 public class Shell {
 

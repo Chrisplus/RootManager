@@ -1,5 +1,8 @@
 
-package com.chrisplus.rootmanager;
+package com.chrisplus.rootmanager.utils;
+
+import com.chrisplus.rootmanager.RootManager;
+import com.chrisplus.rootmanager.container.Command;
 
 import android.os.Looper;
 import android.util.Log;

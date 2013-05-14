@@ -7,9 +7,12 @@ import java.util.concurrent.TimeoutException;
 
 import android.text.TextUtils;
 
+import com.chrisplus.rootmanager.container.Command;
+import com.chrisplus.rootmanager.container.OperationResult;
+import com.chrisplus.rootmanager.container.Shell;
 import com.chrisplus.rootmanager.exception.PermissionException;
-import com.chrisplus.rootmanager.execution.Shell;
-import com.chrisplus.rootmanager.internal.Remounter;
+import com.chrisplus.rootmanager.utils.Remounter;
+import com.chrisplus.rootmanager.utils.RootUtils;
 
 /**
  * This class is the main interface of RootManager.

@@ -1,10 +1,11 @@
 
-package com.chrisplus.rootmanager;
+package com.chrisplus.rootmanager.container;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.chrisplus.rootmanager.execution.Shell;
+import com.chrisplus.rootmanager.Constants;
+import com.chrisplus.rootmanager.utils.RootUtils;
 
 public abstract class Command {
 

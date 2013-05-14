@@ -16,7 +16,7 @@
  * limitations under that License.
  */
 
-package com.chrisplus.rootmanager.internal;
+package com.chrisplus.rootmanager.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,12 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import android.util.Log;
-
-import com.chrisplus.rootmanager.Command;
-import com.chrisplus.rootmanager.containers.Mount;
+import com.chrisplus.rootmanager.container.Command;
+import com.chrisplus.rootmanager.container.Mount;
+import com.chrisplus.rootmanager.container.Shell;
 import com.chrisplus.rootmanager.exception.PermissionException;
-import com.chrisplus.rootmanager.execution.Shell;
 
 /**
  * The remounter.
