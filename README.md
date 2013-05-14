@@ -12,4 +12,5 @@ This project bases on the project [*ROOTTOOL*](https://code.google.com/p/roottoo
 *RootManager* is released under *GNU GPL v2 license*.
 
 ## Update Log
-2013-5-5 Un-finished.
+2013-5-5	Un-finished.
+2013-5-14	Basic Features Finished.
