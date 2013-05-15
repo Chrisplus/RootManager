@@ -24,7 +24,6 @@ public class Shell {
     private static final String token = "F*D^W@#FGF";
 
     private static Shell rootShell = null;
-    private static Shell shell = null;
     private static Shell customShell = null;
 
     private Shell(String cmd) throws IOException, TimeoutException, PermissionException {
@@ -61,12 +60,12 @@ public class Shell {
     }
 
     public static Shell getOpenShell() {
-        if (customShell != null) {
-            return customShell;
-        } else if (rootShell != null) {
+        if (rootShell != null) {
             return rootShell;
+        } else if (customShell != null) {
+            return customShell;
         } else {
-            return shell;
+            return null;
         }
     }
 
@@ -119,34 +118,9 @@ public class Shell {
         return customShell;
     }
 
-    public static Shell startShell() throws IOException, TimeoutException {
-        return Shell.startShell(10000);
-    }
-
-    public static Shell startShell(int timeout) throws IOException, TimeoutException {
-        Shell.shellTimeout = timeout;
-
-        try {
-            if (shell == null) {
-                RootUtils.Log("Starting Shell!");
-                shell = new Shell("/system/bin/sh");
-            } else {
-                RootUtils.Log("Using Existing Shell!");
-            }
-            return shell;
-        } catch (PermissionException e) {
-            // Root Denied should never be thrown.
-            throw new IOException();
-        }
-    }
-
     public static void runRootCommand(Command command) throws IOException, TimeoutException,
             PermissionException {
         startRootShell().add(command);
-    }
-
-    public static void runCommand(Command command) throws IOException, TimeoutException {
-        startShell().add(command);
     }
 
     public static void closeCustomShell() throws IOException {
@@ -163,25 +137,9 @@ public class Shell {
         rootShell.close();
     }
 
-    public static void closeShell() throws IOException {
-        if (shell == null) {
-            return;
-        }
-        shell.close();
-    }
-
     public static void closeAll() throws IOException {
-        closeShell();
         closeRootShell();
         closeCustomShell();
-    }
-
-    public static boolean isShellOpen() {
-        if (shell == null) {
-            return false;
-        } else {
-            return true;
-        }
     }
 
     public static boolean isCustomShellOpen() {
@@ -201,9 +159,7 @@ public class Shell {
     }
 
     public static boolean isAnyShellOpen() {
-        if (shell != null) {
-            return true;
-        } else if (rootShell != null) {
+        if (rootShell != null) {
             return true;
         } else if (customShell != null) {
             return true;
@@ -340,9 +296,6 @@ public class Shell {
     public void close() throws IOException {
         if (this == rootShell) {
             rootShell = null;
-        }
-        if (this == shell) {
-            shell = null;
         }
         if (this == customShell) {
             customShell = null;
