@@ -143,24 +143,21 @@ public class RootManager {
         }
 
         OperationResult result = OperationResult.INSTALL_FIALED;
-        // TODO fill the install command call back.
+
+        final StringBuilder infoSb = new StringBuilder();
         Command commandImpl = new Command(command) {
 
             @Override
             public void onUpdate(int id, String message) {
-                // TODO Auto-generated method stub
-
+                infoSb.append(message);
             }
 
             @Override
             public void onFinished(int id) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onFailed(int id, int errorCode) {
-                // TODO Auto-generated method stub
+                String finalInfo = infoSb.toString();
+                if(TextUtils.isEmpty(finalInfo)){
+                    commandRes = OperationResult.INSTALL_FIALED;
+                }
 
             }
 
@@ -216,12 +213,6 @@ public class RootManager {
 
             @Override
             public void onFinished(int id) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onFailed(int id, int errorCode) {
                 // TODO Auto-generated method stub
 
             }
@@ -405,10 +396,6 @@ public class RootManager {
 
             }
 
-            @Override
-            public void onFailed(int id, int errorCode) {
-
-            }
         };
 
         try {
@@ -456,12 +443,6 @@ public class RootManager {
 
             }
 
-            @Override
-            public void onFailed(int id, int errorCode) {
-                // TODO Auto-generated method stub
-
-            }
-
         };
 
         try {
@@ -481,6 +462,20 @@ public class RootManager {
         }
 
         return result;
+    }
+
+    /**
+     * Get a screen cap and save into the specific path.
+     * 
+     * @param path the path with file name and extend name.
+     * @return the operation result.
+     */
+    public boolean screenCap(String path) {
+        if (TextUtils.isEmpty(path)) {
+            return OperationResult.FAILED.getResult();
+        }
+
+        return runCommand("sreenCap " + path).getResult();
     }
 
     public boolean isProcessRunning(String processName) {
@@ -513,11 +508,6 @@ public class RootManager {
 
             @Override
             public void onFinished(int id) {
-
-            }
-
-            @Override
-            public void onFailed(int id, int errorCode) {
 
             }
 

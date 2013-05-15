@@ -21,8 +21,6 @@ public abstract class Command {
 
     public abstract void onFinished(int id);
 
-    public abstract void onFailed(int id, int errorCode);
-
     public Command(String... commands) {
         this(Constants.COMMAND_TIMEOUT, commands);
     }
