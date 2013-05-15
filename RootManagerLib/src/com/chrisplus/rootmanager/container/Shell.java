@@ -13,6 +13,7 @@ import com.chrisplus.rootmanager.utils.RootUtils;
 
 public class Shell {
 
+    private final static String TAG = Shell.class.getSimpleName();
     private final Process proc;
     private final DataInputStream in;
     private final DataOutputStream out;
@@ -28,7 +29,7 @@ public class Shell {
 
     private Shell(String cmd) throws IOException, TimeoutException, PermissionException {
 
-        RootUtils.Log("Starting shell: " + cmd);
+        RootUtils.Log(TAG, "Starting shell: " + cmd);
 
         proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
         in = new DataInputStream(proc.getInputStream());
@@ -70,7 +71,7 @@ public class Shell {
     }
 
     public static Shell startRootShell() throws IOException, TimeoutException, PermissionException {
-        return Shell.startRootShell(10000);
+        return Shell.startRootShell(shellTimeout);
     }
 
     public static Shell startRootShell(int timeout) throws IOException, TimeoutException,
@@ -101,7 +102,7 @@ public class Shell {
 
     public static Shell startCustomShell(String shellPath) throws IOException, TimeoutException,
             PermissionException {
-        return Shell.startCustomShell(shellPath, 10000);
+        return Shell.startCustomShell(shellPath, shellTimeout);
     }
 
     public static Shell startCustomShell(String shellPath, int timeout) throws IOException,
