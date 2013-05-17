@@ -91,12 +91,6 @@ public class Remounter {
                 public void onFinished(int id) {
 
                 }
-
-                @Override
-                public void onFailed(int id, int errorCode) {
-
-                }
-
             };
 
             try {

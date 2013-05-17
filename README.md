@@ -15,3 +15,5 @@ This project bases on the project [*ROOTTOOL*](https://code.google.com/p/roottoo
 2013-5-5	Un-finished.
 
 2013-5-14	Basic Features Finished.
+
+2013-5-17	Refactor OperationResult Class.
