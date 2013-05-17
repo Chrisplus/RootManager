@@ -7,7 +7,7 @@
     <string name="btn_install">Install Package</string>
     <string name="btn_uninstall">Uninstall Package</string>
     <string name="toggle_unrooted">No Granted SU Permission</string>
-    <string name="toggle_rooted">Granted SU Permission</string>
+    <string name="toggle_rooted">SU Permission Granted</string>
     <string name="btn_screen_cap">Screen Shot</string>
     <string name="btn_run_command">Run</string>
     <string name="btn_remount">Remount</string>

@@ -1,6 +1,8 @@
 
 package com.chrisplus.rootmanager.container;
 
+import com.chrisplus.rootmanager.utils.RootUtils;
+
 /**
  * This class is used to store a root operation result which contains the result
  * of execution and details information.
@@ -22,8 +24,9 @@ public class Result {
     }
 
     public Boolean getResult() {
+        RootUtils.Log("Status Code is " + statusCode);
         if (statusCode == 0) {
-            return null;
+            return true;
         } else if (statusCode <= 100) {
             return true;
         } else {

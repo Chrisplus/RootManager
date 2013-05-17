@@ -54,8 +54,9 @@ public class RootManager {
         if (hasRooted == null) {
             for (String path : Constants.SU_BINARY_DIRS) {
                 File su = new File(path + "/su");
-                if (su != null && su.exists()) {
+                if (su.exists()) {
                     hasRooted = true;
+                    break;
                 } else {
                     hasRooted = false;
                 }
@@ -367,7 +368,7 @@ public class RootManager {
      * Remount a path file as the type.
      * 
      * @param path the path you want to remount
-     * @param mountType the mount type, including, <i>"r", "w", "rw"</i>
+     * @param mountType the mount type, including, <i>"ro" means read only, "rw" means read and write</i>
      * @return the operation result.
      */
     public boolean remount(String path, String mountType) {
@@ -375,8 +376,7 @@ public class RootManager {
             return false;
         }
 
-        if (mountType.equalsIgnoreCase("r") || mountType.equalsIgnoreCase("w")
-                || mountType.equalsIgnoreCase("rw") || mountType.equalsIgnoreCase("wr")) {
+        if (mountType.equalsIgnoreCase("rw") || mountType.equalsIgnoreCase("ro")) {
             return Remounter.remount(path, mountType);
         } else {
             return false;
@@ -467,8 +467,10 @@ public class RootManager {
         if (TextUtils.isEmpty(path)) {
             return false;
         }
+        Result res = runCommand("screencap " + path);
+        RootUtils.Log((res == null) + "");
 
-        return runCommand("screenCap " + path).getResult();
+        return res.getResult();
     }
 
     public boolean isProcessRunning(String processName) {
