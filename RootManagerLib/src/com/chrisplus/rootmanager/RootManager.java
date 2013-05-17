@@ -8,7 +8,8 @@ import java.util.concurrent.TimeoutException;
 import android.text.TextUtils;
 
 import com.chrisplus.rootmanager.container.Command;
-import com.chrisplus.rootmanager.container.OperationResult;
+import com.chrisplus.rootmanager.container.Result;
+import com.chrisplus.rootmanager.container.Result.ResultBuilder;
 import com.chrisplus.rootmanager.container.Shell;
 import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.utils.Remounter;
@@ -99,7 +100,7 @@ public class RootManager {
      * @param apkPath the file path of apk, do not start with <I>file://</I>.
      * @return The result of run command operation or install operation.
      */
-    public OperationResult installPackage(String apkPath) {
+    public Result installPackage(String apkPath) {
         return installPackage(apkPath, "a");
     }
 
@@ -119,13 +120,14 @@ public class RootManager {
      *            </ul>
      * @return The result of run command operation or install operation.
      */
-    public OperationResult installPackage(String apkPath, String installLocation) {
-
-        if (TextUtils.isEmpty(apkPath)) {
-            return OperationResult.FAILED;
-        }
+    public Result installPackage(String apkPath, String installLocation) {
 
         RootUtils.checkUIThread();
+        final ResultBuilder builder = Result.newBuilder();
+
+        if (TextUtils.isEmpty(apkPath)) {
+            return builder.setFailed().build();
+        }
 
         String command = Constants.COMMAND_INSTALL;
         if (RootUtils.isNeedPathSDK()) {
@@ -142,8 +144,6 @@ public class RootManager {
             }
         }
 
-        OperationResult result = OperationResult.INSTALL_FIALED;
-
         final StringBuilder infoSb = new StringBuilder();
         Command commandImpl = new Command(command) {
 
@@ -155,10 +155,26 @@ public class RootManager {
             @Override
             public void onFinished(int id) {
                 String finalInfo = infoSb.toString();
-                if(TextUtils.isEmpty(finalInfo)){
-                    commandRes = OperationResult.INSTALL_FIALED;
-                }
+                if (TextUtils.isEmpty(finalInfo)) {
+                    builder.setInstallFailed();
+                } else {
+                    if (finalInfo.contains("success") || finalInfo.contains("Success")) {
+                        builder.setInstallSuccess();
+                    } else if (finalInfo.contains("failed") || finalInfo.contains("FAILED")) {
+                        if (finalInfo.contains("FAILED_INSUFFICIENT_STORAGE")) {
+                            builder.setInsallFailedNoSpace();
+                        } else if (finalInfo.contains("FAILED_INCONSISTENT_CERTIFICATES")) {
+                            builder.setInstallFailedWrongCer();
+                        } else if (finalInfo.contains("FAILED_CONTAINER_ERROR")) {
+                            builder.setInstallFailedWrongCer();
+                        } else {
+                            builder.setInstallFailed();
+                        }
 
+                    } else {
+                        builder.setInstallFailed();
+                    }
+                }
             }
 
         };
@@ -167,19 +183,19 @@ public class RootManager {
             Shell.startRootShell().add(commandImpl).waitForFinish();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+            builder.setCommandFailedInterrupted();
         } catch (IOException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED;
+            builder.setCommandFailed();
         } catch (TimeoutException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+            builder.setCommandFailedTimeout();
         } catch (PermissionException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+            builder.setCommandFailedDenied();
         }
 
-        return result;
+        return builder.build();
 
     }
 
@@ -193,28 +209,36 @@ public class RootManager {
      * @param packageName the app's package name you want to uninstall.
      * @return The result of run command operation or uninstall operation.
      */
-    public OperationResult uninstallPackage(String packageName) {
+    public Result uninstallPackage(String packageName) {
+        RootUtils.checkUIThread();
+        final ResultBuilder builder = Result.newBuilder();
+
         if (TextUtils.isEmpty(packageName)) {
-            return OperationResult.FAILED;
+            return builder.setFailed().build();
         }
 
-        RootUtils.checkUIThread();
-
         String command = Constants.COMMAND_UNINSTALL + packageName;
-        OperationResult result = OperationResult.UNINSTALL_FAILED;
-        // TODO fill in uninstall function.
+        final StringBuilder infoSb = new StringBuilder();
+
         Command commandImpl = new Command(command) {
 
             @Override
             public void onUpdate(int id, String message) {
-                // TODO Auto-generated method stub
-
+                infoSb.append(message);
             }
 
             @Override
             public void onFinished(int id) {
-                // TODO Auto-generated method stub
-
+                String finalInfo = infoSb.toString();
+                if (TextUtils.isEmpty(finalInfo)) {
+                    builder.setUninstallFailed();
+                } else {
+                    if (finalInfo.contains("Success") || finalInfo.contains("success")) {
+                        builder.setUninstallSuccess();
+                    } else {
+                        builder.setUninstallFailed();
+                    }
+                }
             }
 
         };
@@ -223,19 +247,19 @@ public class RootManager {
             Shell.startRootShell().add(commandImpl).waitForFinish();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+            builder.setCommandFailedInterrupted();
         } catch (IOException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED;
+            builder.setCommandFailed();
         } catch (TimeoutException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+            builder.setCommandFailedTimeout();
         } catch (PermissionException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+            builder.setCommandFailedDenied();
         }
 
-        return result;
+        return builder.build();
     }
 
     /**
@@ -248,10 +272,12 @@ public class RootManager {
      * @param apkPath the source apk path of system app.
      * @return The result of run command operation or uninstall operation.
      */
-    public OperationResult uninstallSystemApp(String apkPath) {
+    public Result uninstallSystemApp(String apkPath) {
         RootUtils.checkUIThread();
+
+        ResultBuilder builder = Result.newBuilder();
         if (TextUtils.isEmpty(apkPath)) {
-            return OperationResult.FAILED;
+            return builder.setFailed().build();
         }
 
         if (remount("/system/", "rw")) {
@@ -261,7 +287,7 @@ public class RootManager {
             }
         }
 
-        return OperationResult.FAILED;
+        return builder.setFailed().build();
     }
 
     /**
@@ -365,9 +391,10 @@ public class RootManager {
      *            necessary.
      * @return the operation result.
      */
-    public OperationResult runBinBinary(String binaryName) {
+    public Result runBinBinary(String binaryName) {
+        ResultBuilder builder = Result.newBuilder();
         if (TextUtils.isEmpty(binaryName)) {
-            return OperationResult.FAILED;
+            return builder.setFailed().build();
         }
         return runBinary("/system/bin/" + binaryName);
     }
@@ -378,43 +405,8 @@ public class RootManager {
      * @param path the file path of binary, containing params if necessary.
      * @return the operation result.
      */
-    public OperationResult runBinary(String path) {
-        if (TextUtils.isEmpty(path)) {
-            return OperationResult.FAILED;
-        }
-
-        OperationResult result = OperationResult.FAILED;
-
-        Command commandImpl = new Command(path) {
-
-            @Override
-            public void onUpdate(int id, String message) {
-            }
-
-            @Override
-            public void onFinished(int id) {
-
-            }
-
-        };
-
-        try {
-            Shell.startRootShell().add(commandImpl).waitForFinish();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
-        } catch (IOException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED;
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
-        } catch (PermissionException e) {
-            e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
-        }
-
-        return result;
+    public Result runBinary(String path) {
+        return runCommand(path);
     }
 
     /**
@@ -423,24 +415,24 @@ public class RootManager {
      * @param command the command string.
      * @return the operation result.
      */
-    public OperationResult runCommand(String command) {
+    public Result runCommand(String command) {
+
+        final ResultBuilder builder = Result.newBuilder();
         if (TextUtils.isEmpty(command)) {
-            return OperationResult.FAILED;
+            return builder.setFailed().build();
         }
 
-        OperationResult result = null;
+        final StringBuilder infoSb = new StringBuilder();
         Command commandImpl = new Command(command) {
 
             @Override
             public void onUpdate(int id, String message) {
-                // TODO Auto-generated method stub
-
+                infoSb.append(message);
             }
 
             @Override
             public void onFinished(int id) {
-                // TODO Auto-generated method stub
-
+                builder.setCustomMessage(infoSb.toString());
             }
 
         };
@@ -449,19 +441,19 @@ public class RootManager {
             Shell.startRootShell().add(commandImpl).waitForFinish();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_INTERRUPTED;
+            builder.setCommandFailedInterrupted();
         } catch (IOException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED;
+            builder.setCommandFailed();
         } catch (TimeoutException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_TIMEOUT;
+            builder.setCommandFailedTimeout();
         } catch (PermissionException e) {
             e.printStackTrace();
-            result = OperationResult.RUNCOMMAND_FAILED_DENIED;
+            builder.setCommandFailedDenied();
         }
 
-        return result;
+        return builder.build();
     }
 
     /**
@@ -471,11 +463,12 @@ public class RootManager {
      * @return the operation result.
      */
     public boolean screenCap(String path) {
+
         if (TextUtils.isEmpty(path)) {
-            return OperationResult.FAILED.getResult();
+            return false;
         }
 
-        return runCommand("sreenCap " + path).getResult();
+        return runCommand("screenCap " + path).getResult();
     }
 
     public boolean isProcessRunning(String processName) {
