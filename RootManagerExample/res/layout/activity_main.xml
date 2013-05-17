@@ -9,21 +9,51 @@
         android:id="@+id/btnRooted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:enabled="false"
         android:textOff="@string/toggle_unrooted"
-        android:textOn="@string/toggle_rooted" 
-        android:enabled="false"/>
+        android:textOn="@string/toggle_rooted" />
 
-    <Button
-        android:id="@+id/bntInstallPackage"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/btn_install" />
+        android:orientation="horizontal" >
 
-    <Button
-        android:id="@+id/btnUninstallPackage"
+        <EditText
+            android:id="@+id/editApkPath"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:ems="10"
+            android:hint="@string/hit_apk_path"
+            android:inputType="text" >
+        </EditText>
+
+        <Button
+            android:id="@+id/bntInstallPackage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_install" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/btn_uninstall" />
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/editPackageName"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:ems="10"
+            android:hint="@string/hit_package_name"
+            android:inputType="text" >
+        </EditText>
+
+        <Button
+            android:id="@+id/btnUninstallPackage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_uninstall" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnScreenShot"

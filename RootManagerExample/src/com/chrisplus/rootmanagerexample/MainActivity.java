@@ -4,6 +4,7 @@ package com.chrisplus.rootmanagerexample;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,6 +31,8 @@ public class MainActivity extends Activity {
     private static EditText commandText;
     private static EditText pathText;
     private static TextView logView;
+    private static EditText apkText;
+    private static EditText pnText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +52,9 @@ public class MainActivity extends Activity {
         /* edit text */
         commandText = (EditText) findViewById(R.id.editCommand);
         pathText = (EditText) findViewById(R.id.editPath);
-        
+        apkText = (EditText) findViewById(R.id.editApkPath);
+        pnText = (EditText) findViewById(R.id.editPackageName);
+
         /* grant button */
         grantButton = (ToggleButton) findViewById(R.id.btnRooted);
         if (RootManager.getInstance().hasRooted()) {
@@ -60,6 +65,7 @@ public class MainActivity extends Activity {
 
         /* Log view */
         logView = (TextView) findViewById(R.id.log);
+        logView.setMovementMethod(ScrollingMovementMethod.getInstance());
 
         /* screen cap */
         screenshotButton = (Button) findViewById(R.id.btnScreenShot);
@@ -73,6 +79,13 @@ public class MainActivity extends Activity {
         remountButton = (Button) findViewById(R.id.btnRemount);
         remountButton.setOnClickListener(remountListener);
 
+        /* install button */
+        installButton = (Button) findViewById(R.id.bntInstallPackage);
+        installButton.setOnClickListener(installListener);
+
+        /* uninstall button */
+        uninstallButton = (Button) findViewById(R.id.btnUninstallPackage);
+        uninstallButton.setOnClickListener(uninstallListener);
     }
 
     private static final OnCheckedChangeListener grantButtonListener = new OnCheckedChangeListener() {
@@ -164,6 +177,66 @@ public class MainActivity extends Activity {
                 }
             });
 
+        }
+
+    };
+
+    private static final OnClickListener installListener = new OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            final String apkPath = apkText.getText().toString();
+            runAsyncTask(new AsyncTask<Void, Void, Result>() {
+
+                @Override
+                protected void onPreExecute() {
+                    updateLog("Installing package " + apkPath + " ...........");
+                    super.onPreExecute();
+                }
+
+                @Override
+                protected Result doInBackground(Void... params) {
+                    return RootManager.getInstance().installPackage(apkPath);
+                }
+
+                @Override
+                protected void onPostExecute(Result result) {
+                    updateLog("Install " + apkPath + " " + result.getResult()
+                            + " with the message " + result.getMessage());
+                    super.onPostExecute(result);
+                }
+
+            });
+        }
+
+    };
+
+    private static final OnClickListener uninstallListener = new OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            final String pkgName = pnText.getText().toString();
+            runAsyncTask(new AsyncTask<Void, Void, Result>() {
+
+                @Override
+                protected void onPreExecute() {
+                    updateLog("Uninstalling package " + pkgName + " ...........");
+                    super.onPreExecute();
+                }
+
+                @Override
+                protected Result doInBackground(Void... params) {
+                    return RootManager.getInstance().uninstallPackage(pkgName);
+                }
+
+                @Override
+                protected void onPostExecute(Result result) {
+                    updateLog("Uninstall " + pkgName + " " + result.getResult()
+                            + " with the message " + result.getMessage());
+                    super.onPostExecute(result);
+                }
+
+            });
         }
 
     };
