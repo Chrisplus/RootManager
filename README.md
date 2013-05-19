@@ -11,9 +11,9 @@ This project bases on the project [*ROOTTOOL*](https://code.google.com/p/roottoo
 * Grant Super User Permission.
 
 ### App Management
-* Install Package.
-* Uninstall Package.
-* Uninstall System Package.
+* Install Package *silently*.
+* Uninstall Package *silently*.
+* Uninstall System Package *silently*.
 
 ### Execute Command or File
 * Run Command.
