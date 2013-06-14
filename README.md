@@ -4,6 +4,7 @@ This is a lib for android developers to do things as a root user, such as judgin
 
 This project bases on the project [*ROOTTOOL*](https://code.google.com/p/roottools/) . *RootManager* slims *roottool* and extends more various utilities for common cases.
 
+Download the lastest JAR File [HERE]().
 ## Features
 
 ### Root Access
@@ -35,7 +36,7 @@ This project bases on the project [*ROOTTOOL*](https://code.google.com/p/roottoo
 
 ## Update Log
 
-* 2013-5-5	Un-finished.
-* 2013-5-14	Basic Features Finished.
-* 2013-5-17	Refactor OperationResult Class.
-* 2013-5-18	Finish Example App v 0.1
+* 2013-5-5Un-finished   .
+* 2013-5-14Basic Features Finished.
+* 2013-5-17Refactor OperationRe     sult Class.
+* 2013-5-18Finish Example App v 0.1 
