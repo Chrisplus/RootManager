@@ -150,7 +150,7 @@ public class RootManager {
 
             @Override
             public void onUpdate(int id, String message) {
-                infoSb.append(message);
+                infoSb.append(message + "\n");
             }
 
             @Override
@@ -225,7 +225,7 @@ public class RootManager {
 
             @Override
             public void onUpdate(int id, String message) {
-                infoSb.append(message);
+                infoSb.append(message + "\n");
             }
 
             @Override
@@ -427,7 +427,7 @@ public class RootManager {
 
             @Override
             public void onUpdate(int id, String message) {
-                infoSb.append(message);
+                infoSb.append(message + "\n");
             }
 
             @Override
