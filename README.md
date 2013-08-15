@@ -1,4 +1,4 @@
-# Root Manager under Development Process
+# Root Manager under Development
 
 This is a lib for android developers to do things as a root user, such as judging whether the device has rooted, try to granted root premission, install app without pop dialog (just like Google Play do), uninstall apps silently, capture screen programmly and so on.  
 
@@ -36,10 +36,13 @@ Download the lastest JAR File [HERE](https://github.com/Chrisplus/RootManager/re
 
 ## Usage and Sample code
 
-* All useful functions you can access via ('RootManager')
-<code>
-    RootManager.getInstance()
-</code>
+* All useful functions you can access via (`RootManager`)
+    + <code>RootManager.getInstance()</code>.
+* A process suggested to do ROOT operation is that:
+    + Check if this device is rooted, hence check if *SU* file exits. (`RootManager.getIntance().hasRooted`). If yes, this device may be rooted and *_maybe_* we can get super user permisson, otherwise we nerver can.
+    + Try to get Super User Permission. (`RootManager.getInstance().grantPermission()`). If yes, it means we has become *SU*, failed otherwise. In this step, generally speaking, a popup dilog will be shown for users to choose *Allow* or *Deny*. This dialog is controlled by the Super User Application in your phone.
+    + Run command, files or call functions as a *SU*. 
+* Access some sample code, check *_RootManagerExample_* please.
 
 ## License
 
