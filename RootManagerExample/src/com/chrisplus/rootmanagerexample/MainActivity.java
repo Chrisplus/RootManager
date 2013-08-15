@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private Button screenshotButton;
     private Button runButton;
     private Button remountButton;
+    private Button restartButton;
     private static boolean isRW = true;
 
     private static EditText commandText;
@@ -86,6 +87,11 @@ public class MainActivity extends Activity {
         /* uninstall button */
         uninstallButton = (Button) findViewById(R.id.btnUninstallPackage);
         uninstallButton.setOnClickListener(uninstallListener);
+
+        /* Restart Device Button */
+        restartButton = (Button) findViewById(R.id.btnRestart);
+        restartButton.setOnClickListener(restartListener);
+
     }
 
     private static final OnCheckedChangeListener grantButtonListener = new OnCheckedChangeListener() {
@@ -237,6 +243,15 @@ public class MainActivity extends Activity {
                 }
 
             });
+        }
+
+    };
+
+    private static final OnClickListener restartListener = new OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            RootManager.getInstance().restartDevice();
         }
 
     };
