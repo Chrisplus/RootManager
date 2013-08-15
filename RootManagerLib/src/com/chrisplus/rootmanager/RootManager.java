@@ -69,12 +69,11 @@ public class RootManager {
     /**
      * Try to grant root permission.
      * <p>
-     * This function may result in poping a prompt for users, wait for the
-     * user's choice and operation, return result then.
+     * This function may result in a popup dialog to users, wait for the user's
+     * choice and operation, return the result then.
      * </p>
      * 
-     * @return whether your app has been given the root permission access by
-     *         user.
+     * @return whether your app has been given the root permission by user.
      */
     public boolean grantPermission() {
         if (!hasGivenPermission) {
@@ -98,7 +97,9 @@ public class RootManager {
      * {@link IllegalStateException} will be thrown if you do so.
      * </p>
      * 
-     * @param apkPath the file path of apk, do not start with <I>file://</I>.
+     * @param apkPath the file path of APK, do not start with <I>"file://"</I>.
+     *            For example, <I>"/sdcard/Tech_test.apk"<I> is good. Please do
+     *            NOT contain non-ASCII chars.
      * @return The result of run command operation or install operation.
      */
     public Result installPackage(String apkPath) {
@@ -112,7 +113,9 @@ public class RootManager {
      * {@link IllegalStateException} will be thrown if you do so.
      * </p>
      * 
-     * @param apkPath the file path of apk, do not start with <I>file://</I>.
+     * @param apkPath the file path of apk, do not start with
+     *            <I>"file://"</I>.For example, <I>"/sdcard/Tech_test.apk"<I> is
+     *            good. Please do NOT contain non-ASCII chars.
      * @param installLocation the location of install.
      *            <ul>
      *            <li>auto means chooing the install location automatic.</li>
@@ -124,6 +127,7 @@ public class RootManager {
     public Result installPackage(String apkPath, String installLocation) {
 
         RootUtils.checkUIThread();
+
         final ResultBuilder builder = Result.newBuilder();
 
         if (TextUtils.isEmpty(apkPath)) {
@@ -212,6 +216,7 @@ public class RootManager {
      */
     public Result uninstallPackage(String packageName) {
         RootUtils.checkUIThread();
+
         final ResultBuilder builder = Result.newBuilder();
 
         if (TextUtils.isEmpty(packageName)) {
@@ -281,7 +286,7 @@ public class RootManager {
             return builder.setFailed().build();
         }
 
-        if (remount("/system/", "rw")) {
+        if (remount(Constants.PATH_SYSTEM, "rw")) {
             File apkFile = new File(apkPath);
             if (apkFile.exists()) {
                 return runCommand("rm '" + apkPath + "'");
@@ -307,7 +312,7 @@ public class RootManager {
             return false;
         }
 
-        return copyFile(filePath, "/system/bin/");
+        return copyFile(filePath, Constants.PATH_SYSTEM_BIN);
     }
 
     /**
@@ -321,13 +326,13 @@ public class RootManager {
             return false;
         }
 
-        File file = new File("/system/bin/" + fileName);
+        File file = new File(Constants.PATH_SYSTEM_BIN + fileName);
         if (!file.exists()) {
             return false;
         }
 
-        if (remount("/system/", "rw")) {
-            return runCommand("rm '" + "/system/bin/" + fileName + "'").getResult();
+        if (remount(Constants.PATH_SYSTEM, "rw")) {
+            return runCommand("rm '" + Constants.PATH_SYSTEM_BIN + fileName + "'").getResult();
         } else {
             return false;
         }
@@ -368,7 +373,8 @@ public class RootManager {
      * Remount a path file as the type.
      * 
      * @param path the path you want to remount
-     * @param mountType the mount type, including, <i>"ro" means read only, "rw" means read and write</i>
+     * @param mountType the mount type, including, <i>"ro" means read only, "rw"
+     *            means read and write</i>
      * @return the operation result.
      */
     public boolean remount(String path, String mountType) {
@@ -396,7 +402,7 @@ public class RootManager {
         if (TextUtils.isEmpty(binaryName)) {
             return builder.setFailed().build();
         }
-        return runBinary("/system/bin/" + binaryName);
+        return runBinary(Constants.PATH_SYSTEM_BIN + binaryName);
     }
 
     /**
@@ -467,22 +473,68 @@ public class RootManager {
         if (TextUtils.isEmpty(path)) {
             return false;
         }
-        Result res = runCommand("screencap " + path);
+        Result res = runCommand(Constants.COMMAND_SCREENCAP + path);
         RootUtils.Log((res == null) + "");
 
         return res.getResult();
     }
 
+    /**
+     * Check whether a process is running.
+     * 
+     * @param processName the name of process. For user app, the process name is
+     *            its package name.
+     * @return whether this process is currently running.
+     */
     public boolean isProcessRunning(String processName) {
-        return false;
+
+        if (TextUtils.isEmpty(processName)) {
+            return false;
+        }
+        Result infos = runCommand(Constants.COMMAND_PS);
+        return infos.getMessage().contains(processName);
     }
 
-    public boolean killProcess(String processName) {
-        return false;
+    /**
+     * Kill a process by its name.
+     * 
+     * @param processName the name of this process. For user app, the process
+     *            name is its package name.
+     * @return the result of operation.
+     */
+    public boolean killProcessByName(String processName) {
+        if (TextUtils.isEmpty(processName)) {
+            return false;
+        }
+        Result res = runCommand(Constants.COMMAND_PIDOF + processName);
+
+        if (!TextUtils.isEmpty(res.getMessage())) {
+            return killProcessById(res.getMessage());
+        } else {
+            return false;
+        }
     }
 
+    /**
+     * Kill a process by its process id, hence pid.
+     * 
+     * @param processID the PID of this process.
+     * @return the result of this operation.
+     */
+    public boolean killProcessById(String processID) {
+        if (TextUtils.isEmpty(processID)) {
+            return false;
+        }
+
+        Result res = runCommand(Constants.COMMAND_KILL + processID);
+        return res.getResult();
+    }
+
+    /**
+     * Restart the device.
+     */
     public void restartDevice() {
-
+        killProcessByName("zygote");
     }
 
     private static boolean accessRoot = false;

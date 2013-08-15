@@ -16,5 +16,6 @@
     <string name="hit_apk_path">/sdcard/example.apk</string>
     <string name="hit_package_name">com.example.example</string>
     <string name="txt_log_out">-->Shell Output</string>
+    <string name="btn_restart">Restart Device</string>
 
 </resources>

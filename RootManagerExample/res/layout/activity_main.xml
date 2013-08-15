@@ -55,11 +55,23 @@
             android:text="@string/btn_uninstall" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btnScreenShot"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/btn_screen_cap" />
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btnScreenShot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_screen_cap" />
+
+        <Button
+            android:id="@+id/btnRestart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_restart" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
