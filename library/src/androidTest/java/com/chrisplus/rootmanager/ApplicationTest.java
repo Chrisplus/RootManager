@@ -1,4 +1,4 @@
-package com.chrisplus.rootmanagerlibrary;
+package com.chrisplus.rootmanager;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

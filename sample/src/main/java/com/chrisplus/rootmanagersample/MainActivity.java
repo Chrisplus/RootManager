@@ -1,9 +1,11 @@
-package com.chrisplus.rootmanager;
+package com.chrisplus.rootmanagersample;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.chrisplus.rootmanager.R;
 
 
 public class MainActivity extends ActionBarActivity {
