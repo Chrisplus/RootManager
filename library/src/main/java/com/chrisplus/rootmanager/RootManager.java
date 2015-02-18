@@ -40,14 +40,13 @@ public class RootManager {
     }
 
     /**
-     * Try to check if the device has been rooted.
+     * Check whether the device is rooted
      * <p>
-     * Generally speaking, a device which has been rooted successfully must have
-     * a binary file named SU. However, SU may not work well for those devices
-     * rooted unfinished.
+     * A rooted device must have a binary file named SU, but SU might not work
+     * on some devices for some reasons.
      * </p>
      * 
-     * @return the result whether this device has been rooted.
+     * @return the result whether this device was rooted.
      */
     public boolean hasRooted() {
         if (hasRooted == null) {
@@ -66,15 +65,15 @@ public class RootManager {
     }
 
     /**
-     * Try to grant root permission.
+     * Try to obtain the root privilege.
      * <p>
-     * This function may result in a popup dialog to users, wait for the user's
-     * choice and operation, return the result then.
+     * This function might popup a dialog to the users, and wait for input
+     * (grant or decline), the return the result.
      * </p>
      * 
-     * @return whether your app has been given the root permission by user.
+     * @return whether your app has been granted the root permission.
      */
-    public boolean grantPermission() {
+    public boolean obtainPermission() {
         if (!hasGivenPermission) {
             hasGivenPermission = accessRoot();
             lastPermissionCheck = System.currentTimeMillis();
@@ -90,15 +89,15 @@ public class RootManager {
     }
 
     /**
-     * Install a user app on the device.
+     * Install an application on the device.
      * <p>
-     * For performance, do NOT call this function on UI thread,
-     * {@link IllegalStateException} will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException}
+     * will be thrown if you do so.
      * </p>
      * 
-     * @param apkPath the file path of APK, do not start with <I>"file://"</I>.
-     *            For example, <I>"/sdcard/Tech_test.apk"<I> is good. Please do
-     *            NOT contain non-ASCII chars.
+     * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
+     *            example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *            are supported.
      * @return The result of run command operation or install operation.
      */
     public Result installPackage(String apkPath) {
@@ -108,18 +107,18 @@ public class RootManager {
     /**
      * Install a user app on the device.
      * <p>
-     * For performance, do NOT call this function on UI thread,
-     * {@link IllegalStateException} will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException}
+     * will be thrown if you do so.
      * </p>
      * 
-     * @param apkPath the file path of apk, do not start with
-     *            <I>"file://"</I>.For example, <I>"/sdcard/Tech_test.apk"<I> is
-     *            good. Please do NOT contain non-ASCII chars.
+     * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
+     *            example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *            are supported.
      * @param installLocation the location of install.
      *            <ul>
-     *            <li>auto means chooing the install location automatic.</li>
-     *            <li>ex means install the app on sdcard.</li>
-     *            <li>in means install the app in phone ram</li>
+     *            <li>auto: install location automatic.</li>
+     *            <li>ex: install the app on sdcard.</li>
+     *            <li>in: install the app on ram</li>
      *            </ul>
      * @return The result of run command operation or install operation.
      */
@@ -204,13 +203,13 @@ public class RootManager {
     }
 
     /**
-     * Uninstall a user app using its package name.
+     * Uninstall the application using its package name.
      * <p>
-     * For performance, do NOT call this function on UI thread,
-     * {@link IllegalStateException} will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException}
+     * will be thrown if you do so.
      * </p>
      * 
-     * @param packageName the app's package name you want to uninstall.
+     * @param packageName the app's package.
      * @return The result of run command operation or uninstall operation.
      */
     public Result uninstallPackage(String packageName) {
@@ -270,8 +269,8 @@ public class RootManager {
     /**
      * Uninstall a system app.
      * <p>
-     * For performance, do NOT call this function on UI thread,
-     * {@link IllegalStateException} will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException}
+     * will be thrown if you do so.
      * </p>
      * 
      * @param apkPath the source apk path of system app.
@@ -315,9 +314,9 @@ public class RootManager {
     }
 
     /**
-     * Uninstall a binary from <I>"/system/bin/"</I>
+     * Remove a binary from <I>"/system/bin/"</I>
      * 
-     * @param fileName, the name of target file.
+     * @param fileName, name of target file.
      * @return the operation result.
      */
     public boolean removeBinary(String fileName) {
@@ -341,7 +340,7 @@ public class RootManager {
     /**
      * Copy a file into destination dir.
      * <p>
-     * Because Android do not support <I>"cp"</I> command by default,
+     * since Android do not support <I>"cp"</I> command by default,
      * <i>"cat source > destination"</i> will be used.
      * </p>
      * 
@@ -372,8 +371,8 @@ public class RootManager {
      * Remount a path file as the type.
      * 
      * @param path the path you want to remount
-     * @param mountType the mount type, including, <i>"ro" means read only, "rw"
-     *            means read and write</i>
+     * @param mountType the mount type, including, <i>"ro", read only, "rw" ,
+     *            read and write</i>
      * @return the operation result.
      */
     public boolean remount(String path, String mountType) {
@@ -390,7 +389,7 @@ public class RootManager {
     }
 
     /**
-     * Run a binary which exit in <i>"/system/bin/"</i>
+     * Run a binary in <i>"/system/bin/"</i>
      * 
      * @param binaryName the file name of binary, containing params if
      *            necessary.
@@ -415,7 +414,7 @@ public class RootManager {
     }
 
     /**
-     * Run a command in default shell.
+     * Run raw commands in default shell.
      * 
      * @param command the command string.
      * @return the operation result.
@@ -462,7 +461,7 @@ public class RootManager {
     }
 
     /**
-     * Get a screen cap and save into the specific path.
+     * Get screen shot.
      * 
      * @param path the path with file name and extend name.
      * @return the operation result.
@@ -476,6 +475,16 @@ public class RootManager {
         RootUtils.Log((res == null) + "");
 
         return res.getResult();
+    }
+
+    /**
+     * Record screen.
+     *
+     * @param path the path with file name and extend name.
+     * @return the operation result.
+     */
+    public boolean screenRecord(String path){
+        return false;
     }
 
     /**
