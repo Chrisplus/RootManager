@@ -34,6 +34,7 @@ public class Result {
         }
     }
 
+
     private Result() {
 
     }

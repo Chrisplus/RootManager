@@ -478,17 +478,34 @@ public class RootManager {
     }
 
     /**
-     * Record screen.
+     * Record screen. This function is ONLY supported on Android 4.4 and upper.
      *
      * @param path the path with file name and extend name.
-     * @return the operation result.
      */
-    public boolean screenRecord(String path){
-        return false;
+    public boolean screenRecord(String path) {
+        return screenRecord(path, Constants.SCREENRECORD_BITRATE_DEFAULT,
+                Constants.SCREENRECORD_TIMELIMIT_DEFAULT);
     }
 
-    public boolean screenRecord(String path, long bateRate, long time){
-        return false;
+    /**
+     * Record screen. This function is ONLY supported on Android 4.4 and upper.
+     * 
+     * @param path the path with file name and extend name.
+     * @param bitRate the bate rate in bps, e.g., 4000000 for 4M bps.
+     * @param time the recording time, in seconds. The default and maximum value
+     *            is 180 (3 minutes).
+     */
+
+    public boolean screenRecord(String path, long bitRate, long time) {
+
+        if (TextUtils.isEmpty(path)) {
+            return false;
+        }
+        Result res = runCommand(Constants.COMMAND_SCREENRECORD + "--bit-rate " + bitRate
+                + "--time-limit " + time + " " + path);
+        RootUtils.Log((res == null) + "");
+
+        return res.getResult();
     }
 
     /**

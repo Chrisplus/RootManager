@@ -70,7 +70,7 @@ public class Constants {
     /**
      * The default command timeout is 5 min.
      */
-    public static final int COMMAND_TIMEOUT = 1000 * 50 * 5;
+    public static final int COMMAND_TIMEOUT = 1000 * 60 * 5;
 
     /**
      * The path of system
@@ -81,5 +81,16 @@ public class Constants {
      * The path of system bin
      */
     public static final String PATH_SYSTEM_BIN = "/system/bin/";
+
+    /**
+     * The default recording bit rate
+     */
+
+    public static final long SCREENRECORD_BITRATE_DEFAULT = 4000000L;
+
+    /**
+     * The default recording time limit
+     */
+    public static final int SCREENRECORD_TIMELIMIT_DEFAULT = 180;
 
 }
