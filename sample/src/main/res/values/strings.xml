@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">RootManager</string>
+    <string name="app_name">RootManagerExample</string>
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="menu_settings">Settings</string>
+    <string name="btn_install">Install</string>
+    <string name="btn_uninstall">Uninstall</string>
+    <string name="toggle_unrooted">No Granted SU Permission</string>
+    <string name="toggle_rooted">SU Permission Granted</string>
+    <string name="btn_screen_cap">Screen Shot</string>
+    <string name="btn_screen_record">Screen record</string>
+    <string name="btn_run_command">Run</string>
+    <string name="btn_remount">Remount</string>
+    <string name="txt_default_command">echo \"hello world\"</string>
+    <string name="txt_default_path">/system/bin/</string>
+    <string name="hit_apk_path">/sdcard/example.apk</string>
+    <string name="hit_package_name">com.example.example</string>
+    <string name="txt_log_out">-->Shell Output</string>
+    <string name="btn_restart">Restart Device</string>
 
 </resources>
