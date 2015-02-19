@@ -63,6 +63,11 @@ public class Constants {
     public static final String COMMAND_PIDOF = "pidof ";
 
     /**
+     * The command string for screen record.
+     */
+    public static final String COMMAND_SCREENRECORD = "screenrecord ";
+
+    /**
      * The default command timeout is 5 min.
      */
     public static final int COMMAND_TIMEOUT = 1000 * 50 * 5;

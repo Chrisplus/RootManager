@@ -69,6 +69,17 @@ public abstract class Command {
         return exitCode;
     }
 
+    public int keepAlive() throws InterruptedException {
+        synchronized (this) {
+            while (!isFinished) {
+                /* test function */
+                this.wait();
+            }
+        }
+
+        return exitCode;
+    }
+
     public int waitForFinish() throws InterruptedException {
         synchronized (this) {
             waitForFinish(timeout);

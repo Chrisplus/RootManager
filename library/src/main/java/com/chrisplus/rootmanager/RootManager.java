@@ -487,6 +487,10 @@ public class RootManager {
         return false;
     }
 
+    public boolean screenRecord(String path, long bateRate, long time){
+        return false;
+    }
+
     /**
      * Check whether a process is running.
      * 
