@@ -1,11 +1,12 @@
 
 package com.chrisplus.rootmanager.utils;
 
-import com.chrisplus.rootmanager.RootManager;
-import com.chrisplus.rootmanager.container.Command;
-
+import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
+
+import com.chrisplus.rootmanager.RootManager;
+import com.chrisplus.rootmanager.container.Command;
 
 /**
  * This class is a set of methods used in {@link RootManager}.
@@ -67,5 +68,14 @@ public class RootUtils {
      */
     public static boolean isNeedPathSDK() {
         return android.os.Build.VERSION.SDK_INT == 17;
+    }
+
+    /**
+     * Check if Android 4.4 and upper.
+     * 
+     * @return
+     */
+    public static boolean isKitKatUpper() {
+        return Build.VERSION.SDK_INT >= 19;
     }
 }

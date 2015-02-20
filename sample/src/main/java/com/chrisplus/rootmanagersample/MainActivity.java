@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.chrisplus.rootmanager.R;
 import com.chrisplus.rootmanager.RootManager;
 import com.chrisplus.rootmanager.container.Result;
 
@@ -22,6 +23,7 @@ public class MainActivity extends ActionBarActivity {
     private Button installButton;
     private Button uninstallButton;
     private Button screenshotButton;
+    private Button screenrecordButton;
     private Button runButton;
     private Button remountButton;
     private Button restartButton;
@@ -43,7 +45,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.activity_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -69,6 +71,10 @@ public class MainActivity extends ActionBarActivity {
         /* screen cap */
         screenshotButton = (Button) findViewById(R.id.btnScreenShot);
         screenshotButton.setOnClickListener(screenCapListener);
+
+        /* screen record */
+        screenrecordButton = (Button) findViewById(R.id.btnScreenRecord);
+        screenrecordButton.setOnClickListener(screenRecordListener);
 
         /* run button */
         runButton = (Button) findViewById(R.id.btnRunCommand);
@@ -134,6 +140,33 @@ public class MainActivity extends ActionBarActivity {
             });
         }
 
+    };
+
+    private static final OnClickListener screenRecordListener = new OnClickListener() {
+        final String path = "/sdcard/testrecord.mp4";
+
+        @Override
+        public void onClick(View v) {
+            runAsyncTask(new AsyncTask<Boolean, Boolean, Boolean>() {
+
+                @Override
+                protected Boolean doInBackground(Boolean... params) {
+                    return RootManager.getInstance().screenRecord(path);
+                }
+
+                @Override
+                protected void onPostExecute(Boolean result) {
+                    if (result) {
+                        updateLog("Screen record saved at " + path);
+                    } else {
+                        updateLog("Screen record failed");
+                    }
+
+                    super.onPostExecute(result);
+                }
+
+            });
+        }
     };
 
     private static final OnClickListener runCommandListener = new OnClickListener() {

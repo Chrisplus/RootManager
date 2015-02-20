@@ -498,7 +498,7 @@ public class RootManager {
 
     public boolean screenRecord(String path, long bitRate, long time) {
 
-        if (TextUtils.isEmpty(path)) {
+        if (!RootUtils.isKitKatUpper() || TextUtils.isEmpty(path)) {
             return false;
         }
         Result res = runCommand(Constants.COMMAND_SCREENRECORD + "--bit-rate " + bitRate
