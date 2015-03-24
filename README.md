@@ -1,18 +1,20 @@
 # Root Manager
 
-RootManager is a library that developers can use to access root utilities on Android devices. Currently RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications *silently*, capturing screen shot, recording screen and so on.
+RootManager is a library that developers can use to access root utilities on Android devices. RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications *silently*, capturing screen shot, recording screen and so on.
 
 The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). RootManager slims ROOTTOOLS and extends various functions for common cases.
 
-
+<p align="center">
+  <img src="./icons/LostVikings.jpg"/>
+</p>
 ## Main Features
 
-#### Access Root Privileges
+##### Access Root Privileges
 
 * Check if the device is rooted.
 * Obtain the root privileges, run command as a superuser.
 
-#### Manage Packages
+##### Manage Packages
 
 * Install packages *silently* [*].
 * Uninstall packages *silently*.
@@ -20,13 +22,13 @@ The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). R
 
 [\*]: *silently* means operation will be done at the background without any popups or prompts.
 
-#### Execute Commands
+##### Execute Commands
 
 * Run commands.
 * Install binary executable files.
 * Remove binary executable files.
 
-#### Utilities
+##### Utilities
 
 * Remount file system in RW.
 * Copy files.
@@ -36,16 +38,17 @@ The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). R
 * Kill process by PID or package name.
 * Restart Device.
 
-## Usage and Sample code
+## Usage & Example
 
 * All functions you can access via (`RootManager`)
     + <code>RootManager.getInstance()</code>.
-* A process suggested to do ROOT operation is that:
-    + Check if this device is rooted, hence check if *SU* file exits. (`RootManager.getIntance().hasRooted`). If yes, this device may be rooted and *_maybe_* we can get super user permisson, otherwise we nerver can.
-    + Try to get Super User Permission. (`RootManager.getInstance().grantPermission()`). If yes, it means we has become *SU*, failed otherwise. In this step, generally speaking, a popup dilog will be shown for users to choose *Allow* or *Deny*. This dialog is controlled by the Super User Application in your phone.
-    + Run command, files or call functions as a *SU*.
-* Access some sample code, check *_RootManagerExample_* please.
+* A suggested procedure to conduct ROOT operations:
+    1. Check if this device is rooted, hence check if *SU* files exits (`RootManager.getInstance().hasRooted`). If yes, this device might be rooted so that we can obtain superuser permission, otherwise we cannot.
+    2. Try to get superuser/root permission via (`RootManager.getInstance.obtainPermission()`). Then, for most cases, a dialog will be shown to users, *GRAND* or *DENY* the full access to the device. This dialog is controlled by permission control applications such as SuperSU and KingUser, etc.
+    3. RootManager will return the result of user authorization.
+    4. Once obtaining superuser permission, developers can run commands or call functions as root.
+* Access some sample code, check *sample* please.
 
 ## License
 
-*RootManager* is released under *GNU GPL v2 license*.
+RootManager is released under [GPL v2 license](https://www.gnu.org/licenses/gpl-2.0.html)
