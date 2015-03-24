@@ -24,9 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Mount {
+
     final File mDevice;
+
     final File mMountPoint;
+
     final String mType;
+
     final Set<String> mFlags;
 
     public Mount(File device, File path, String type, String flagsStr) {

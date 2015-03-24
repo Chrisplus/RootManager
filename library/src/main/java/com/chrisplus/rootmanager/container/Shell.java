@@ -1,5 +1,7 @@
-
 package com.chrisplus.rootmanager.container;
+
+import com.chrisplus.rootmanager.exception.PermissionException;
+import com.chrisplus.rootmanager.utils.RootUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,24 +10,52 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import com.chrisplus.rootmanager.exception.PermissionException;
-import com.chrisplus.rootmanager.utils.RootUtils;
 
 public class Shell {
 
     private final static String TAG = Shell.class.getSimpleName();
-    private final Process proc;
-    private final DataInputStream in;
-    private final DataOutputStream out;
-    private final List<Command> commands = new ArrayList<Command>();
-    private boolean close = false;
 
-    private static int shellTimeout = 10000;
-    private static String error = "";
     private static final String token = "F*D^W@#FGF";
 
+    private static int shellTimeout = 10000;
+
+    private static String error = "";
+
     private static Shell rootShell = null;
+
     private static Shell customShell = null;
+
+    private final Process proc;
+
+    private final DataInputStream in;
+
+    private final DataOutputStream out;
+
+    private final List<Command> commands = new ArrayList<Command>();
+
+    private boolean close = false;
+
+    private Runnable input = new Runnable() {
+        public void run() {
+            try {
+                writeCommands();
+            } catch (IOException e) {
+                RootUtils.Log(e.getMessage());
+            }
+        }
+    };
+
+    private Runnable output = new Runnable() {
+        public void run() {
+            try {
+                readOutput();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     private Shell(String cmd) throws IOException, TimeoutException, PermissionException {
 
@@ -169,16 +199,6 @@ public class Shell {
         }
     }
 
-    private Runnable input = new Runnable() {
-        public void run() {
-            try {
-                writeCommands();
-            } catch (IOException e) {
-                RootUtils.Log(e.getMessage());
-            }
-        }
-    };
-
     private void writeCommands() throws IOException {
         try {
             int write = 0;
@@ -209,18 +229,6 @@ public class Shell {
             e.printStackTrace();
         }
     }
-
-    private Runnable output = new Runnable() {
-        public void run() {
-            try {
-                readOutput();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
     private void readOutput() throws IOException, InterruptedException {
         Command command = null;
@@ -284,8 +292,9 @@ public class Shell {
     }
 
     public Command add(Command command) throws IOException {
-        if (close)
+        if (close) {
             throw new IllegalStateException("Unable to add commands to a closed shell");
+        }
         synchronized (commands) {
             commands.add(command);
             commands.notifyAll();
@@ -320,10 +329,13 @@ public class Shell {
     }
 
     protected static class Worker extends Thread {
+
         public int exit = -911;
 
         public Process proc;
+
         public DataInputStream in;
+
         public DataOutputStream out;
 
         private Worker(Process proc, DataInputStream in, DataOutputStream out) {

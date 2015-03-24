@@ -1,11 +1,4 @@
-
 package com.chrisplus.rootmanager;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
-import android.text.TextUtils;
 
 import com.chrisplus.rootmanager.container.Command;
 import com.chrisplus.rootmanager.container.Result;
@@ -15,17 +8,27 @@ import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.utils.Remounter;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
+import android.text.TextUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 /**
  * This class is the main interface of RootManager.
- * 
+ *
  * @author Shiqi Jiang
  */
 public class RootManager {
 
     private static RootManager instance;
 
+    private static boolean accessRoot = false;
+
     private Boolean hasRooted = null;
+
     private boolean hasGivenPermission = false;
+
     private long lastPermissionCheck = -1;
 
     private RootManager() {
@@ -45,7 +48,7 @@ public class RootManager {
      * A rooted device must have a binary file named SU, but SU might not work
      * on some devices for some reasons.
      * </p>
-     * 
+     *
      * @return the result whether this device was rooted.
      */
     public boolean hasRooted() {
@@ -70,7 +73,7 @@ public class RootManager {
      * This function might popup a dialog to the users, and wait for input
      * (grant or decline), the return the result.
      * </p>
-     * 
+     *
      * @return whether your app has been granted the root permission.
      */
     public boolean obtainPermission() {
@@ -79,7 +82,8 @@ public class RootManager {
             lastPermissionCheck = System.currentTimeMillis();
         } else {
             if (lastPermissionCheck < 0
-                    || System.currentTimeMillis() - lastPermissionCheck > Constants.PERMISSION_EXPIRE_TIME) {
+                    || System.currentTimeMillis() - lastPermissionCheck
+                    > Constants.PERMISSION_EXPIRE_TIME) {
                 hasGivenPermission = accessRoot();
                 lastPermissionCheck = System.currentTimeMillis();
             }
@@ -94,10 +98,10 @@ public class RootManager {
      * do NOT call this function on UI thread, {@link IllegalStateException}
      * will be thrown if you do so.
      * </p>
-     * 
+     *
      * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
-     *            example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
-     *            are supported.
+     *                example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *                are supported.
      * @return The result of run command operation or install operation.
      */
     public Result installPackage(String apkPath) {
@@ -110,16 +114,16 @@ public class RootManager {
      * do NOT call this function on UI thread, {@link IllegalStateException}
      * will be thrown if you do so.
      * </p>
-     * 
-     * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
-     *            example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
-     *            are supported.
+     *
+     * @param apkPath         the APK file path, do not start with <I>"file://"</I>. For
+     *                        example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *                        are supported.
      * @param installLocation the location of install.
-     *            <ul>
-     *            <li>auto: install location automatic.</li>
-     *            <li>ex: install the app on sdcard.</li>
-     *            <li>in: install the app on ram</li>
-     *            </ul>
+     *                        <ul>
+     *                        <li>auto: install location automatic.</li>
+     *                        <li>ex: install the app on sdcard.</li>
+     *                        <li>in: install the app on ram</li>
+     *                        </ul>
      * @return The result of run command operation or install operation.
      */
     public Result installPackage(String apkPath, String installLocation) {
@@ -208,7 +212,7 @@ public class RootManager {
      * do NOT call this function on UI thread, {@link IllegalStateException}
      * will be thrown if you do so.
      * </p>
-     * 
+     *
      * @param packageName the app's package.
      * @return The result of run command operation or uninstall operation.
      */
@@ -272,7 +276,7 @@ public class RootManager {
      * do NOT call this function on UI thread, {@link IllegalStateException}
      * will be thrown if you do so.
      * </p>
-     * 
+     *
      * @param apkPath the source apk path of system app.
      * @return The result of run command operation or uninstall operation.
      */
@@ -296,7 +300,7 @@ public class RootManager {
 
     /**
      * Install a binary file into <I>"/system/bin/"</I>
-     * 
+     *
      * @param filePath The target of the binary file.
      * @return the operation result.
      */
@@ -315,7 +319,7 @@ public class RootManager {
 
     /**
      * Remove a binary from <I>"/system/bin/"</I>
-     * 
+     *
      * @param fileName, name of target file.
      * @return the operation result.
      */
@@ -343,8 +347,8 @@ public class RootManager {
      * since Android do not support <I>"cp"</I> command by default,
      * <i>"cat source > destination"</i> will be used.
      * </p>
-     * 
-     * @param source the source file path.
+     *
+     * @param source         the source file path.
      * @param destinationDir the destination dir path.
      * @return the operation result.
      */
@@ -369,10 +373,10 @@ public class RootManager {
 
     /**
      * Remount a path file as the type.
-     * 
-     * @param path the path you want to remount
+     *
+     * @param path      the path you want to remount
      * @param mountType the mount type, including, <i>"ro", read only, "rw" ,
-     *            read and write</i>
+     *                  read and write</i>
      * @return the operation result.
      */
     public boolean remount(String path, String mountType) {
@@ -390,9 +394,9 @@ public class RootManager {
 
     /**
      * Run a binary in <i>"/system/bin/"</i>
-     * 
+     *
      * @param binaryName the file name of binary, containing params if
-     *            necessary.
+     *                   necessary.
      * @return the operation result.
      */
     public Result runBinBinary(String binaryName) {
@@ -405,7 +409,7 @@ public class RootManager {
 
     /**
      * Run a binary file.
-     * 
+     *
      * @param path the file path of binary, containing params if necessary.
      * @return the operation result.
      */
@@ -415,7 +419,7 @@ public class RootManager {
 
     /**
      * Run raw commands in default shell.
-     * 
+     *
      * @param command the command string.
      * @return the operation result.
      */
@@ -462,7 +466,7 @@ public class RootManager {
 
     /**
      * Get screen shot.
-     * 
+     *
      * @param path the path with file name and extend name.
      * @return the operation result.
      */
@@ -489,11 +493,11 @@ public class RootManager {
 
     /**
      * Record screen. This function is ONLY supported on Android 4.4 and upper.
-     * 
-     * @param path the path with file name and extend name.
+     *
+     * @param path    the path with file name and extend name.
      * @param bitRate the bate rate in bps, e.g., 4000000 for 4M bps.
-     * @param time the recording time, in seconds. The default and maximum value
-     *            is 180 (3 minutes).
+     * @param time    the recording time, in seconds. The default and maximum value
+     *                is 180 (3 minutes).
      */
 
     public boolean screenRecord(String path, long bitRate, long time) {
@@ -510,9 +514,9 @@ public class RootManager {
 
     /**
      * Check whether a process is running.
-     * 
+     *
      * @param processName the name of process. For user app, the process name is
-     *            its package name.
+     *                    its package name.
      * @return whether this process is currently running.
      */
     public boolean isProcessRunning(String processName) {
@@ -526,9 +530,9 @@ public class RootManager {
 
     /**
      * Kill a process by its name.
-     * 
+     *
      * @param processName the name of this process. For user app, the process
-     *            name is its package name.
+     *                    name is its package name.
      * @return the result of operation.
      */
     public boolean killProcessByName(String processName) {
@@ -546,7 +550,7 @@ public class RootManager {
 
     /**
      * Kill a process by its process id, hence pid.
-     * 
+     *
      * @param processID the PID of this process.
      * @return the result of this operation.
      */
@@ -565,8 +569,6 @@ public class RootManager {
     public void restartDevice() {
         killProcessByName("zygote");
     }
-
-    private static boolean accessRoot = false;
 
     private boolean accessRoot() {
 

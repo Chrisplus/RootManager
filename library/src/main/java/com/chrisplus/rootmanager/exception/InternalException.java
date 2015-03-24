@@ -1,9 +1,8 @@
-
 package com.chrisplus.rootmanager.exception;
 
 /**
  * This exception will be throwed when Root Manager internal error occured.
- * 
+ *
  * @author Chris Jiang
  */
 public class InternalException extends Exception {

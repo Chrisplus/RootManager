@@ -1,5 +1,8 @@
-
 package com.chrisplus.rootmanagersample;
+
+import com.chrisplus.rootmanager.R;
+import com.chrisplus.rootmanager.RootManager;
+import com.chrisplus.rootmanager.container.Result;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,25 +17,34 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import com.chrisplus.rootmanager.R;
-import com.chrisplus.rootmanager.RootManager;
-import com.chrisplus.rootmanager.container.Result;
-
 public class MainActivity extends ActionBarActivity {
+
     private ToggleButton grantButton;
+
     private Button installButton;
+
     private Button uninstallButton;
+
     private Button screenshotButton;
+
     private Button screenrecordButton;
+
     private Button runButton;
+
     private Button remountButton;
+
     private Button restartButton;
+
     private static boolean isRW = true;
 
     private static EditText commandText;
+
     private static EditText pathText;
+
     private static TextView logView;
+
     private static EditText apkText;
+
     private static EditText pnText;
 
     @Override
@@ -98,7 +110,8 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    private static final CompoundButton.OnCheckedChangeListener grantButtonListener = new CompoundButton.OnCheckedChangeListener() {
+    private static final CompoundButton.OnCheckedChangeListener grantButtonListener
+            = new CompoundButton.OnCheckedChangeListener() {
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

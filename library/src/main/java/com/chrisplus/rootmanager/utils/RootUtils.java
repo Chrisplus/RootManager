@@ -1,21 +1,21 @@
-
 package com.chrisplus.rootmanager.utils;
+
+import com.chrisplus.rootmanager.RootManager;
+import com.chrisplus.rootmanager.container.Command;
 
 import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
 
-import com.chrisplus.rootmanager.RootManager;
-import com.chrisplus.rootmanager.container.Command;
-
 /**
  * This class is a set of methods used in {@link RootManager}.
- * 
+ *
  * @author Chris
  */
 public class RootUtils {
 
     private final static String TAG = "RootManager";
+
     private static int cmdID = 0;
 
     /**
@@ -30,8 +30,6 @@ public class RootUtils {
 
     /**
      * Output log to logcat as the debug level.
-     * 
-     * @param message
      */
     public static void Log(String message) {
         Log.d(TAG, message);
@@ -42,9 +40,8 @@ public class RootUtils {
      * <p>
      * The example: LibTag::YourExtendTag, Log Message.
      * </p>
-     * 
+     *
      * @param extendTag Your extend tag.
-     * @param message
      */
     public static void Log(String extendTag, String message) {
         Log.d(TAG + "::" + extendTag, message);
@@ -52,7 +49,7 @@ public class RootUtils {
 
     /**
      * Get a command Id for each {@link Command}.
-     * 
+     *
      * @return the actual ID.
      */
     public static int generateCommandID() {
@@ -63,8 +60,6 @@ public class RootUtils {
 
     /**
      * Check if command need patch.
-     * 
-     * @return
      */
     public static boolean isNeedPathSDK() {
         return android.os.Build.VERSION.SDK_INT == 17;
@@ -72,8 +67,6 @@ public class RootUtils {
 
     /**
      * Check if Android 4.4 and upper.
-     * 
-     * @return
      */
     public static boolean isKitKatUpper() {
         return Build.VERSION.SDK_INT >= 19;

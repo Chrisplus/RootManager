@@ -1,9 +1,8 @@
-
 package com.chrisplus.rootmanager.exception;
 
 /**
  * This exception will be throwed when Root permission error occurs.
- * 
+ *
  * @author Chris Jiang
  */
 public class PermissionException extends Exception {

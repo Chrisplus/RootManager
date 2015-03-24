@@ -1,4 +1,3 @@
-
 package com.chrisplus.rootmanager.container;
 
 import com.chrisplus.rootmanager.utils.RootUtils;
@@ -6,14 +5,23 @@ import com.chrisplus.rootmanager.utils.RootUtils;
 /**
  * This class is used to store a root operation result which contains the result
  * of execution and details information.
- * 
+ *
  * @author Chris Jiang
  */
 public class Result {
 
     /* members */
     private String message;
+
     private int statusCode;
+
+    private Result() {
+
+    }
+
+    public static ResultBuilder newBuilder() {
+        return new ResultBuilder();
+    }
 
     public String getMessage() {
         return message;
@@ -34,16 +42,48 @@ public class Result {
         }
     }
 
+    public enum ResultEnum {
 
-    private Result() {
+        RUNCOMMAND_SUCCESS(90, "Command Executed Successfully"), RUNCOMMAND_FAILED_TIMEOUT(401,
+                "Run Command Timeout"), RUNCOMMAND_FAILED_DENIED(402,
+                "Run Command Permission Denied"), RUNCOMMAND_FAILED_INTERRUPTED(403,
+                "Run Command Interrupted"), RUNCOMMAND_FAILED(409, "Run Command Failed"),
 
-    }
+        INSTALL_SUCCESS(80, "Application installed Successfully"), INSTALL_FAILED_NOSPACE(404,
+                "Install Failed because of no enough space"), INSTALL_FAILED_WRONGCONTAINER(405,
+                "Install Failed Wrong container"), INSTALL_FAILED_WRONGCER(406,
+                "Install Failed Wrong Cer or version"), INSTALL_FIALED(407, "Install Failed"),
 
-    public static ResultBuilder newBuilder() {
-        return new ResultBuilder();
+        UNINSTALL_SUCCESS(70, "Application uninstall Successfully"), UNINSTALL_FAILED(408,
+                "Uninstall App Failed"),
+
+        FAILED(409, "Illegal Parameters or State"), CUSTOM(0, "");
+
+        private int statusCode;
+
+        private String message;
+
+        private ResultEnum(int sc, String msg) {
+            statusCode = sc;
+            message = msg;
+        }
+
+        public void setCustomMessage(String customMessage) {
+            message = customMessage;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
     }
 
     public static class ResultBuilder {
+
         private ResultEnum inEnum = null;
 
         public ResultBuilder setCommandSuccess() {
@@ -102,7 +142,7 @@ public class Result {
         }
 
         public ResultBuilder setUninstallFailed() {
-            inEnum = ResultEnum.UNINSTALL_SUCCESS;
+            inEnum = ResultEnum.UNINSTALL_FAILED;
             return this;
         }
 
@@ -128,44 +168,5 @@ public class Result {
             re.statusCode = inEnum.getStatusCode();
             return re;
         }
-    }
-
-    public enum ResultEnum {
-
-        RUNCOMMAND_SUCCESS(90, "Command Executed Successfully"), RUNCOMMAND_FAILED_TIMEOUT(401,
-                "Run Command Timeout"), RUNCOMMAND_FAILED_DENIED(402,
-                "Run Command Permission Denied"), RUNCOMMAND_FAILED_INTERRUPTED(403,
-                "Run Command Interrupted"), RUNCOMMAND_FAILED(409, "Run Command Failed"),
-
-        INSTALL_SUCCESS(80, "Application installed Successfully"), INSTALL_FAILED_NOSPACE(404,
-                "Install Failed because of no enough space"), INSTALL_FAILED_WRONGCONTAINER(405,
-                "Install Failed Wrong container"), INSTALL_FAILED_WRONGCER(406,
-                "Install Failed Wrong Cer or version"), INSTALL_FIALED(407, "Install Failed"),
-
-        UNINSTALL_SUCCESS(70, "Application uninstall Successfully"), UNINSTALL_FAILED(408,
-                "Uninstall App Failed"),
-
-        FAILED(409, "Illegal Parameters or State"), CUSTOM(0, "");
-
-        private int statusCode;
-        private String message;
-
-        private ResultEnum(int sc, String msg) {
-            statusCode = sc;
-            message = msg;
-        }
-
-        public void setCustomMessage(String customMessage) {
-            message = customMessage;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public int getStatusCode() {
-            return statusCode;
-        }
-
     }
 }

@@ -1,25 +1,24 @@
-
 package com.chrisplus.rootmanager.container;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 import com.chrisplus.rootmanager.Constants;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public abstract class Command {
 
     private String[] commands;
+
     private boolean isFinished;
+
     private int exitCode;
+
     private long timeout;
+
     private int id;
 
     /* Abstract function should be implemented by caller */
-
-    public abstract void onUpdate(int id, String message);
-
-    public abstract void onFinished(int id);
 
     public Command(String... commands) {
         this(Constants.COMMAND_TIMEOUT, commands);
@@ -30,6 +29,10 @@ public abstract class Command {
         this.timeout = timeout;
         this.commands = commands;
     }
+
+    public abstract void onUpdate(int id, String message);
+
+    public abstract void onFinished(int id);
 
     public int getID() {
         return id;

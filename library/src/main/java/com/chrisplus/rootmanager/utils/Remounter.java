@@ -18,6 +18,11 @@
 
 package com.chrisplus.rootmanager.utils;
 
+import com.chrisplus.rootmanager.container.Command;
+import com.chrisplus.rootmanager.container.Mount;
+import com.chrisplus.rootmanager.container.Shell;
+import com.chrisplus.rootmanager.exception.PermissionException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -27,17 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import com.chrisplus.rootmanager.container.Command;
-import com.chrisplus.rootmanager.container.Mount;
-import com.chrisplus.rootmanager.container.Shell;
-import com.chrisplus.rootmanager.exception.PermissionException;
-
 /**
  * The remounter.
- * 
+ *
  * @author Chris Jiang
  */
 public class Remounter {
+
     private static final String MOUNT_FILE = "/proc/mounts";
 
     public static boolean remount(String file, String mountType) {
@@ -123,7 +124,7 @@ public class Remounter {
             return null;
         }
 
-        for (File path = new File(file); path != null;) {
+        for (File path = new File(file); path != null; ) {
             for (Mount mount : mounts) {
                 if (mount.getMountPoint().equals(path)) {
                     return mount;
@@ -150,7 +151,8 @@ public class Remounter {
         try {
             while ((line = lnr.readLine()) != null) {
                 String[] fields = line.split(" ");
-                mounts.add(new Mount(new File(fields[0]), new File(fields[1]), fields[2], fields[3]));
+                mounts.add(
+                        new Mount(new File(fields[0]), new File(fields[1]), fields[2], fields[3]));
             }
             lnr.close();
         } catch (IOException e) {

@@ -1,4 +1,3 @@
-
 package com.chrisplus.rootmanager;
 
 public class Constants {
