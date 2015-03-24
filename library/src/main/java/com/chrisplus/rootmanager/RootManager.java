@@ -482,7 +482,7 @@ public class RootManager {
     }
 
     /**
-     * Record screen. This function is ONLY supported on Android 4.4 and upper.
+     * Record screen for 30s. This function is ONLY supported on Android 4.4 and upper.
      *
      * @param path the path with file name and extend name.
      */
@@ -506,9 +506,7 @@ public class RootManager {
             return false;
         }
         Result res = runCommand(Constants.COMMAND_SCREENRECORD + "--bit-rate " + bitRate
-                + "--time-limit " + time + " " + path);
-        RootUtils.Log((res == null) + "");
-
+                + " --time-limit " + time + " " + path);
         return res.getResult();
     }
 

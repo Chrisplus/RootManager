@@ -90,6 +90,6 @@ public class Constants {
     /**
      * The default recording time limit
      */
-    public static final int SCREENRECORD_TIMELIMIT_DEFAULT = 180;
+    public static final int SCREENRECORD_TIMELIMIT_DEFAULT = 30;
 
 }

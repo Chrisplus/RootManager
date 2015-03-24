@@ -163,6 +163,12 @@ public class MainActivity extends ActionBarActivity {
             runAsyncTask(new AsyncTask<Boolean, Boolean, Boolean>() {
 
                 @Override
+                protected void onPreExecute() {
+                    updateLog("Recording 30s...");
+                    super.onPreExecute();
+                }
+
+                @Override
                 protected Boolean doInBackground(Boolean... params) {
                     return RootManager.getInstance().screenRecord(path);
                 }
