@@ -1,4 +1,4 @@
-# Root Manager
+# Root Manager [![Build Status](https://travis-ci.org/Chrisplus/RootManager.svg?branch=master)](https://travis-ci.org/Chrisplus/RootManager)
 
 RootManager is a library that developers can use to access root utilities on Android devices. RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications *silently*, capturing screen shot, recording screen and so on.
 
