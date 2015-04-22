@@ -30,6 +30,8 @@ public class RootUtils {
 
     /**
      * Output log to logcat as the debug level.
+     *
+     * @param message The message will be printed.
      */
     public static void Log(String message) {
         Log.d(TAG, message);
@@ -42,6 +44,7 @@ public class RootUtils {
      * </p>
      *
      * @param extendTag Your extend tag.
+     * @param message   The message will be printed.
      */
     public static void Log(String extendTag, String message) {
         Log.d(TAG + "::" + extendTag, message);
@@ -60,6 +63,8 @@ public class RootUtils {
 
     /**
      * Check if command need patch.
+     *
+     * @return whether the device need to be set a new SDK location.
      */
     public static boolean isNeedPathSDK() {
         return android.os.Build.VERSION.SDK_INT == 17;
@@ -67,6 +72,8 @@ public class RootUtils {
 
     /**
      * Check if Android 4.4 and upper.
+     *
+     * @return true for 4.4 upper.
      */
     public static boolean isKitKatUpper() {
         return Build.VERSION.SDK_INT >= 19;

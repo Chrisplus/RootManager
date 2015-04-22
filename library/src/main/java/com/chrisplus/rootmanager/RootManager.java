@@ -100,7 +100,7 @@ public class RootManager {
      * </p>
      *
      * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
-     *                example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *                example, <I>"/sdcard/Tech_test.apk"</I> is OK. Only ASCII chars
      *                are supported.
      * @return The result of run command operation or install operation.
      */
@@ -116,7 +116,7 @@ public class RootManager {
      * </p>
      *
      * @param apkPath         the APK file path, do not start with <I>"file://"</I>. For
-     *                        example, <I>"/sdcard/Tech_test.apk"<I> is OK. Only ASCII chars
+     *                        example, <I>"/sdcard/Tech_test.apk"</I> is OK. Only ASCII chars
      *                        are supported.
      * @param installLocation the location of install.
      *                        <ul>
@@ -345,7 +345,7 @@ public class RootManager {
      * Copy a file into destination dir.
      * <p>
      * since Android do not support <I>"cp"</I> command by default,
-     * <i>"cat source > destination"</i> will be used.
+     * <i>"cat source to destination"</i> will be used.
      * </p>
      *
      * @param source         the source file path.
@@ -485,6 +485,7 @@ public class RootManager {
      * Record screen for 30s. This function is ONLY supported on Android 4.4 and upper.
      *
      * @param path the path with file name and extend name.
+     * @return the operation result.
      */
     public boolean screenRecord(String path) {
         return screenRecord(path, Constants.SCREENRECORD_BITRATE_DEFAULT,
@@ -498,6 +499,7 @@ public class RootManager {
      * @param bitRate the bate rate in bps, e.g., 4000000 for 4M bps.
      * @param time    the recording time, in seconds. The default and maximum value
      *                is 180 (3 minutes).
+     * @return the operation result.
      */
 
     public boolean screenRecord(String path, long bitRate, long time) {
