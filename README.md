@@ -7,7 +7,7 @@ The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). R
 <p align="center">
   <img src="./icons/LostVikings.jpg"/>
 </p>
-## Main Features
+## Features
 
 ##### Access Root Privileges
 
@@ -39,7 +39,12 @@ The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). R
 * Restart Device.
 
 ## Usage & Example
-
+* Install RootManager by gradle:
+```groovy
+dependencies {
+    compile 'com.chrisplus.rootmanager:library:2.0.3@aar'
+}
+```
 * All functions you can access via (`RootManager`)
     + <code>RootManager.getInstance()</code>.
 * A suggested procedure to conduct ROOT operations:
