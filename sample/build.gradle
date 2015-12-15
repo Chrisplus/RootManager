@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.chrisplus.rootmanagersample"
         minSdkVersion 9
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode 202
         versionName "2.0.2"
     }
