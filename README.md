@@ -42,7 +42,7 @@ The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). R
 * Install RootManager by gradle:
 ```groovy
 dependencies {
-    compile 'com.chrisplus.rootmanager:library:2.0.3@aar'
+    compile 'com.chrisplus.rootmanager:library:2.0.4@aar'
 }
 ```
 * All functions you can access via (`RootManager`)
