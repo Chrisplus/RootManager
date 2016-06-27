@@ -28,3 +28,7 @@ proguard/
 # android studio
 .idea/
 *.iml
+
+# release config
+release.properties
+publish.properties

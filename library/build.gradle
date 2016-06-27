@@ -1,23 +1,29 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+    }
+}
+
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: "com.jfrog.bintray"
 
-version = "2.0.3"
+
+group = 'com.chrisplus.rootmanager'
+version = project.version_name
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 21
-        versionCode 203
-        versionName "2.0.3"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+        minSdkVersion rootProject.ext.minSdkVersion
+        versionCode project.version_code.toInteger()
+        versionName project.version_name
     }
 }
 
@@ -25,9 +31,59 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-def siteUrl = 'https://github.com/Chrisplus/RootManager'      // Homepage URL of the library
-def gitUrl = 'https://github.com/Chrisplus/RootManager.git'   // Git repository URL
-group = "com.chrisplus.rootmanager"                      // Maven Group ID for the artifact
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                name project.repo_name
+                description project.repo_desc
+                url project.repo_site
+
+                packaging 'aar'
+                groupId group
+                artifactId 'library'
+                version project.version_name
+
+                // Set your license
+                licenses {
+                    license {
+                        name project.license_name
+                        url project.license_url
+                    }
+                }
+                developers {
+                    developer {
+                        id project.developer_id
+                        name project.developer_name
+                        email project.developer_email
+                    }
+                }
+                scm {
+                    connection project.repo_git
+                    developerConnection project.repo_site
+                    url project.repo_site
+
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('publish.properties').newDataInputStream())
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = project.repo_name
+        websiteUrl = project.repo_site
+        vcsUrl = project.repo_git
+        licenses = [project.license_name]
+        publish = true
+    }
+}
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
@@ -48,28 +104,21 @@ artifacts {
     archives sourcesJar
 }
 
+def Properties props = new Properties()
+def propFile = new File('publish.properties')
+if (propFile.canRead()) {
+    props.load(new FileInputStream(propFile))
 
+    if (props != null && props.containsKey('bintray.user') &&
+            props.containsKey('bintray.key')) {
 
-bintray {
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
+        println 'publish.properties found'
+        bintray.user = props['bintray.user']
+        bintray.key = props['bintray.key']
 
-    configurations = ['archives']
-    pkg {
-        repo = "maven"
-        name = "RootManager"
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["GPL-2.0"]
-        publish = true
-        version {
-            gpg {
-                sign = true //Determines whether to GPG sign the files. The default is false
-                passphrase = properties.getProperty("bintray.gpg.password")
-                //Optional. The passphrase for GPG signing'
-            }
-        }
+    } else {
+        println 'publish.properties found but some entries are missing'
     }
+} else {
+    println 'publish.properties not found'
 }
