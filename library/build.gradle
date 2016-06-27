@@ -1,12 +1,11 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: "com.jfrog.bintray"
 
 version = "2.0.3"
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         minSdkVersion 9
@@ -30,43 +29,6 @@ def siteUrl = 'https://github.com/Chrisplus/RootManager'      // Homepage URL of
 def gitUrl = 'https://github.com/Chrisplus/RootManager.git'   // Git repository URL
 group = "com.chrisplus.rootmanager"                      // Maven Group ID for the artifact
 
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                packaging 'aar'
-
-                name 'RootManager'
-                description =
-                        'RootManager is a library that developers can use to access root utilities on Android devices. RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications silently, capturing screen shot, recording screen and so on.'
-                url siteUrl
-
-                // Set your license
-                licenses {
-                    license {
-                        name 'GNU GENERAL PUBLIC LICENSE, Version 2'
-                        url 'https://www.gnu.org/licenses/gpl-2.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id 'Chrisplus'
-                        name 'Shiqi Jiang'
-                        email 'chrisplus.jiang@gmail.com'
-                    }
-                }
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
-
-                }
-            }
-        }
-    }
-}
-
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
@@ -88,26 +50,26 @@ artifacts {
 
 
 
-//bintray {
-//    Properties properties = new Properties()
-//    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-//    user = properties.getProperty("bintray.user")
-//    key = properties.getProperty("bintray.apikey")
-//
-//    configurations = ['archives']
-//    pkg {
-//        repo = "maven"
-//        name = "RootManager"
-//        websiteUrl = siteUrl
-//        vcsUrl = gitUrl
-//        licenses = ["GPL-2.0"]
-//        publish = true
-//        version {
-//            gpg {
-//                sign = true //Determines whether to GPG sign the files. The default is false
-//                passphrase = properties.getProperty("bintray.gpg.password")
-//                //Optional. The passphrase for GPG signing'
-//            }
-//        }
-//    }
-//}
+bintray {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "RootManager"
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["GPL-2.0"]
+        publish = true
+        version {
+            gpg {
+                sign = true //Determines whether to GPG sign the files. The default is false
+                passphrase = properties.getProperty("bintray.gpg.password")
+                //Optional. The passphrase for GPG signing'
+            }
+        }
+    }
+}
