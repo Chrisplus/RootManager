@@ -43,13 +43,13 @@ public class RootManager {
     }
 
     /**
-     * Check whether the device is rooted
+     * Check if the device is rooted
      * <p>
-     * A rooted device must have a binary file named SU, but SU might not work
-     * on some devices for some reasons.
+     * This function check if the system has SU file. Note that though SU file exits, it might not
+     * work.
      * </p>
      *
-     * @return the result whether this device was rooted.
+     * @return this device is rooted or not.
      */
     public boolean hasRooted() {
         if (hasRooted == null) {
@@ -68,13 +68,12 @@ public class RootManager {
     }
 
     /**
-     * Try to obtain the root privilege.
+     * Try to obtain the root access.
      * <p>
-     * This function might popup a dialog to the users, and wait for input
-     * (grant or decline), the return the result.
+     * This function might lead to a popup to users, and wait for the input : grant or decline.
      * </p>
      *
-     * @return whether your app has been granted the root permission.
+     * @return the app has been granted the root permission or not.
      */
     public boolean obtainPermission() {
         if (!hasGivenPermission) {
@@ -93,38 +92,36 @@ public class RootManager {
     }
 
     /**
-     * Install an application on the device.
+     * Install an app on the device.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException}
-     * will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * otherwise.
      * </p>
      *
-     * @param apkPath the APK file path, do not start with <I>"file://"</I>. For
-     *                example, <I>"/sdcard/Tech_test.apk"</I> is OK. Only ASCII chars
-     *                are supported.
-     * @return The result of run command operation or install operation.
+     * @param apkPath the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII is
+     *                supported.
+     * @return the result {@link Result} of running the command.
      */
     public Result installPackage(String apkPath) {
         return installPackage(apkPath, "a");
     }
 
     /**
-     * Install a user app on the device.
+     * Install a app on the specific location.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException}
-     * will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * otherwise.
      * </p>
      *
-     * @param apkPath         the APK file path, do not start with <I>"file://"</I>. For
-     *                        example, <I>"/sdcard/Tech_test.apk"</I> is OK. Only ASCII chars
-     *                        are supported.
-     * @param installLocation the location of install.
+     * @param apkPath         the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII
+     *                        is supported.
+     * @param installLocation the location of this installation.
      *                        <ul>
-     *                        <li>auto: install location automatic.</li>
+     *                        <li>auto: choose the install  location automatically.</li>
      *                        <li>ex: install the app on sdcard.</li>
      *                        <li>in: install the app on ram</li>
      *                        </ul>
-     * @return The result of run command operation or install operation.
+     * @return the result {@link Result} of running the command.
      */
     public Result installPackage(String apkPath, String installLocation) {
 
@@ -207,14 +204,14 @@ public class RootManager {
     }
 
     /**
-     * Uninstall the application using its package name.
+     * Uninstall an app by its package name.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException}
-     * will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * otherwise.
      * </p>
      *
-     * @param packageName the app's package.
-     * @return The result of run command operation or uninstall operation.
+     * @param packageName the app's package name.
+     * @return the result {@link Result} of running the command.
      */
     public Result uninstallPackage(String packageName) {
         RootUtils.checkUIThread();
@@ -271,14 +268,14 @@ public class RootManager {
     }
 
     /**
-     * Uninstall a system app.
+     * Uninstall a system app by its path.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException}
-     * will be thrown if you do so.
+     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * otherwise.
      * </p>
      *
-     * @param apkPath the source apk path of system app.
-     * @return The result of run command operation or uninstall operation.
+     * @param apkPath the source apk path of the system app.
+     * @return the result {@link Result} of running the command.
      */
     public Result uninstallSystemApp(String apkPath) {
         RootUtils.checkUIThread();
@@ -343,10 +340,6 @@ public class RootManager {
 
     /**
      * Copy a file into destination dir.
-     * <p>
-     * since Android do not support <I>"cp"</I> command by default,
-     * <i>"cat source to destination"</i> will be used.
-     * </p>
      *
      * @param source         the source file path.
      * @param destinationDir the destination dir path.
@@ -372,11 +365,10 @@ public class RootManager {
     }
 
     /**
-     * Remount a path file as the type.
+     * Remount file system.
      *
      * @param path      the path you want to remount
-     * @param mountType the mount type, including, <i>"ro", read only, "rw" ,
-     *                  read and write</i>
+     * @param mountType the mount type, including, <i>"ro", read only, "rw" , read and write</i>
      * @return the operation result.
      */
     public boolean remount(String path, String mountType) {
@@ -395,9 +387,8 @@ public class RootManager {
     /**
      * Run a binary in <i>"/system/bin/"</i>
      *
-     * @param binaryName the file name of binary, containing params if
-     *                   necessary.
-     * @return the operation result.
+     * @param binaryName the file name of binary, containing params if necessary.
+     * @return the result {@link Result} of running the command.
      */
     public Result runBinBinary(String binaryName) {
         ResultBuilder builder = Result.newBuilder();
@@ -411,7 +402,7 @@ public class RootManager {
      * Run a binary file.
      *
      * @param path the file path of binary, containing params if necessary.
-     * @return the operation result.
+     * @return the result {@link Result} of running the command.
      */
     public Result runBinary(String path) {
         return runCommand(path);
@@ -421,7 +412,7 @@ public class RootManager {
      * Run raw commands in default shell.
      *
      * @param command the command string.
-     * @return the operation result.
+     * @return the result {@link Result} of running the command.
      */
     public Result runCommand(String command) {
 
@@ -513,11 +504,11 @@ public class RootManager {
     }
 
     /**
-     * Check whether a process is running.
+     * Check if a process is running.
      *
      * @param processName the name of process. For user app, the process name is
      *                    its package name.
-     * @return whether this process is currently running.
+     * @return whether this process is running.
      */
     public boolean isProcessRunning(String processName) {
 
@@ -531,9 +522,9 @@ public class RootManager {
     /**
      * Kill a process by its name.
      *
-     * @param processName the name of this process. For user app, the process
+     * @param processName the name of this process. For user apps, the process
      *                    name is its package name.
-     * @return the result of operation.
+     * @return the operation result.
      */
     public boolean killProcessByName(String processName) {
         if (TextUtils.isEmpty(processName)) {
@@ -549,10 +540,10 @@ public class RootManager {
     }
 
     /**
-     * Kill a process by its process id, hence pid.
+     * Kill a process by its process id.
      *
-     * @param processID the PID of this process.
-     * @return the result of this operation.
+     * @param processID PID of the target process.
+     * @return the operation result.
      */
     public boolean killProcessById(String processID) {
         if (TextUtils.isEmpty(processID)) {
