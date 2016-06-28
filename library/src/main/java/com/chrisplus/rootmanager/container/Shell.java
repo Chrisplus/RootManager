@@ -31,7 +31,7 @@ public class Shell {
 
     private final DataOutputStream out;
 
-    private final List<Command> commands = new ArrayList<Command>();
+    private final List<Command> commands = new ArrayList<>();
 
     private boolean close = false;
 
@@ -73,7 +73,6 @@ public class Shell {
 
             if (worker.exit == -911) {
                 proc.destroy();
-
                 throw new TimeoutException(error);
             }
             if (worker.exit == -42) {

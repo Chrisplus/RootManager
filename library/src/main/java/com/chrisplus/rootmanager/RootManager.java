@@ -14,11 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-/**
- * This class is the main interface of RootManager.
- *
- * @author Shiqi Jiang
- */
 public class RootManager {
 
     private static RootManager instance;

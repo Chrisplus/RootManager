@@ -8,6 +8,12 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
 ext {
     minSdkVersion = 9
     compileSdkVersion = 23

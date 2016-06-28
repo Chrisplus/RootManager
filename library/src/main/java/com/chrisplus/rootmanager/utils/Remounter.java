@@ -32,11 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-/**
- * The remounter.
- *
- * @author Chris Jiang
- */
 public class Remounter {
 
     private static final String MOUNT_FILE = "/proc/mounts";

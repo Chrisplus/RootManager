@@ -3,7 +3,7 @@ package com.chrisplus.rootmanager;
 public class Constants {
 
     /**
-     * The set of SU location I know by now.
+     * The set of SU location
      */
     public static final String[] SU_BINARY_DIRS = {
             "/system/bin", "/system/sbin", "/system/xbin",
