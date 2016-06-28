@@ -1,6 +1,5 @@
 package com.chrisplus.rootmanagersample;
 
-import com.chrisplus.rootmanager.R;
 import com.chrisplus.rootmanager.RootManager;
 import com.chrisplus.rootmanager.container.Result;
 
