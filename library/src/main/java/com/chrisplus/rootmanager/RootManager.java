@@ -482,9 +482,8 @@ public class RootManager {
      * Record screen. This function is ONLY supported on Android 4.4 and upper.
      *
      * @param path    the path with file name and extend name.
-     * @param bitRate the bate rate in bps, e.g., 4000000 for 4M bps.
-     * @param time    the recording time, in seconds. The default and maximum value
-     *                is 180 (3 minutes).
+     * @param bitRate the bate rate in bps, i.e., 4000000 for 4M bps.
+     * @param time    the recording time in seconds
      * @return the operation result.
      */
 
