@@ -6,6 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.chrisplus.rootmanagersample"
+
         minSdkVersion rootProject.ext.minSdkVersion
         versionCode project.version_code.toInteger()
         versionName project.version_name
