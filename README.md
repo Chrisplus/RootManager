@@ -1,59 +1,55 @@
 # Root Manager [![Build Status](https://travis-ci.org/Chrisplus/RootManager.svg?branch=master)](https://travis-ci.org/Chrisplus/RootManager)
 
-RootManager is a library that developers can use to access root utilities on Android devices. RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications *silently*, capturing screen shot, recording screen and so on.
+RootManager is a library which enable developers access the root utilities on Android devices. RootManager provides functions including checking if the device is rooted, trying to obtain superuser privileges, installing/uninstalling applications *silently*, capturing screen shot, recording screen (4.4. and upper), etc..
 
 The project is based on [*ROOTTOOLS*](https://github.com/Stericson/RootTools). RootManager slims ROOTTOOLS and extends various functions for common cases.
 
 <p align="center">
   <img src="./icons/LostVikings.jpg"/>
 </p>
-## Features
+### Features
 
-##### Access Root Privileges
+##### root access
+* check if the device is rooted.
+* obtain the root privileges, run command as the superuser.
 
-* Check if the device is rooted.
-* Obtain the root privileges, run command as a superuser.
-
-##### Manage Packages
-
-* Install packages *silently* [*].
-* Uninstall packages *silently*.
-* Uninstall system applications *silently*.
+##### package management
+* install packages *silently* [*].
+* uninstall packages *silently*.
+* uninstall system applications *silently*.
 
 [\*]: *silently* means operation will be done at the background without any popups or prompts.
 
-##### Execute Commands
+##### command execution
+* run commands.
+* install binary executable files.
+* remove binary executable files.
 
-* Run commands.
-* Install binary executable files.
-* Remove binary executable files.
+##### others
+* remount file system in RW.
+* copy files.
+* capture screenshots.
+* screen record on 4.4 and upper.
+* check if a process is running.
+* kill a process by its PID or package name.
+* restart the device.
 
-##### Utilities
-
-* Remount file system in RW.
-* Copy files.
-* Capture screenshots.
-* Record screen.
-* Check whether a process is running.
-* Kill process by PID or package name.
-* Restart Device.
-
-## Usage & Example
+### Usage
 * Install RootManager by gradle:
 ```groovy
 dependencies {
-    compile 'com.chrisplus.rootmanager:library:2.0.3@aar'
+    compile 'com.chrisplus.rootmanager:library:2.0.5@aar'
 }
 ```
 * All functions you can access via (`RootManager`)
     + <code>RootManager.getInstance()</code>.
-* A suggested procedure to conduct ROOT operations:
-    1. Check if this device is rooted, hence check if *SU* files exits (`RootManager.getInstance().hasRooted`). If yes, this device might be rooted so that we can obtain superuser permission, otherwise we cannot.
-    2. Try to get superuser/root permission via (`RootManager.getInstance.obtainPermission()`). Then, for most cases, a dialog will be shown to users, *GRAND* or *DENY* the full access to the device. This dialog is controlled by permission control applications such as SuperSU and KingUser, etc.
-    3. RootManager will return the result of user authorization.
-    4. Once obtaining superuser permission, developers can run commands or call functions as root.
-* Access some sample code, check *sample* please.
+* A suggestion to call RootManager:
+    1. check if this device is rooted (`RootManager.getInstance().hasRooted`). If yes, this device might be rooted so that we can obtain superuser permission, otherwise we cannot.
+    2. try to get root permission via (`RootManager.getInstance.obtainPermission()`). Then, for most cases, a dialog will be shown to users, *GRAND* or *DENY* the full access to the device. This dialog is controlled by SU app such as SuperSU and KingUser, etc.
+    3. RootManager will return the result according to the user choice.
+    4. once obtaining the root access, developers can run commands or call functions.
+* Access some sample code, check the sample app please.
 
-## License
+### License
 
 RootManager is released under [GPL v2 license](https://www.gnu.org/licenses/gpl-2.0.html)
