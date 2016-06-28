@@ -3,10 +3,14 @@ package com.chrisplus.rootmanager.container;
 import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -14,33 +18,35 @@ import java.util.concurrent.TimeoutException;
 public class Shell {
 
     private final static String TAG = Shell.class.getSimpleName();
-
     private static final String token = "F*D^W@#FGF";
-
     private static int shellTimeout = 10000;
 
     private static String error = "";
-
     private static Shell rootShell = null;
-
     private static Shell customShell = null;
 
     private final Process proc;
-
-    private final DataInputStream in;
-
-    private final DataOutputStream out;
+    private final BufferedReader inputStream;
+    private final BufferedReader errorStream;
+    private final OutputStreamWriter outputStream;
 
     private final List<Command> commands = new ArrayList<>();
-
     private boolean close = false;
+
+    private int write;
+    private int read;
 
     private Runnable input = new Runnable() {
         public void run() {
             try {
                 writeCommands();
             } catch (IOException e) {
-                RootUtils.Log(e.getMessage());
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                write = 0;
+                closeWriter(outputStream);
             }
         }
     };
@@ -53,6 +59,11 @@ public class Shell {
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            } finally {
+                read = 0;
+                closeReader(inputStream);
+                closeReader(errorStream);
+                closeWriter(outputStream);
             }
         }
     };
@@ -61,22 +72,29 @@ public class Shell {
 
         RootUtils.Log(TAG, "Starting shell: " + cmd);
 
-        proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
-        in = new DataInputStream(proc.getInputStream());
-        out = new DataOutputStream(proc.getOutputStream());
+        proc = Runtime.getRuntime().exec(cmd);
 
-        Worker worker = new Worker(proc, in, out);
+        inputStream = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+        errorStream = new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
+        outputStream = new OutputStreamWriter(this.proc.getOutputStream(), "UTF-8");
+
+        Worker worker = new Worker(this);
         worker.start();
 
         try {
             worker.join(shellTimeout);
-
             if (worker.exit == -911) {
                 proc.destroy();
+                closeReader(inputStream);
+                closeReader(inputStream);
+                closeWriter(outputStream);
                 throw new TimeoutException(error);
             }
             if (worker.exit == -42) {
                 proc.destroy();
+                closeReader(inputStream);
+                closeReader(errorStream);
+                closeWriter(outputStream);
                 throw new PermissionException("Root Access Denied");
             } else {
                 new Thread(input, "Shell Input").start();
@@ -198,42 +216,57 @@ public class Shell {
         }
     }
 
-    private void writeCommands() throws IOException {
-        try {
-            int write = 0;
-            while (true) {
-                DataOutputStream out;
-                synchronized (commands) {
-                    while (!close && write >= commands.size()) {
-                        commands.wait();
-                    }
-                    out = this.out;
-                }
-                if (write < commands.size()) {
-                    Command next = commands.get(write);
-                    next.writeCommand(out);
-                    String line = "\necho " + token + " " + write + " $?\n";
-                    out.write(line.getBytes());
-                    out.flush();
-                    write++;
-                } else if (close) {
-                    out.write("\nexit 0\n".getBytes());
-                    out.flush();
-                    out.close();
-                    RootUtils.Log("Closing shell");
-                    return;
+    private void closeWriter(final Writer writer) {
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void closeReader(final Reader reader) {
+        if (reader != null) {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void writeCommands() throws IOException, InterruptedException {
+
+        while (true) {
+            DataOutputStream out;
+            synchronized (commands) {
+                while (!close && write >= commands.size()) {
+                    commands.wait();
                 }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if (write < commands.size()) {
+                Command next = commands.get(write);
+                outputStream.write(next.getCommand());
+                String line = "\necho " + token + " " + write + " $?\n";
+                outputStream.write(line);
+                outputStream.flush();
+                write++;
+            } else if (close) {
+                outputStream.write("\nexit 0\n");
+                outputStream.flush();
+                outputStream.close();
+                RootUtils.Log("Closing shell");
+                return;
+            }
         }
+
     }
 
     private void readOutput() throws IOException, InterruptedException {
         Command command = null;
-        int read = 0;
         while (true) {
-            String line = in.readLine();
+            String line = inputStream.readLine();
             if (line == null) {
                 break;
             }
@@ -261,11 +294,14 @@ public class Shell {
                     } catch (NumberFormatException e) {
                     }
                     int exitCode = -1;
+
                     try {
                         exitCode = Integer.parseInt(fields[2]);
                     } catch (NumberFormatException e) {
+                        e.printStackTrace();
                     }
                     if (id == read) {
+                        readError(command);
                         command.setExitCode(exitCode);
                         read++;
                         command = null;
@@ -287,6 +323,20 @@ public class Shell {
             command.terminate("Unexpected Termination.");
             command = null;
             read++;
+        }
+    }
+
+    private void readError(Command command) {
+        try {
+            while (errorStream.ready() && command != null) {
+                String line = errorStream.readLine();
+                if (line == null) {
+                    break;
+                }
+                command.onUpdate(command.getID(), line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -330,27 +380,20 @@ public class Shell {
     protected static class Worker extends Thread {
 
         public int exit = -911;
+        public Shell shell;
 
-        public Process proc;
-
-        public DataInputStream in;
-
-        public DataOutputStream out;
-
-        private Worker(Process proc, DataInputStream in, DataOutputStream out) {
-            this.proc = proc;
-            this.in = in;
-            this.out = out;
+        private Worker(Shell shell) {
+            this.shell = shell;
         }
 
         public void run() {
 
             try {
-                out.write("echo Started\n".getBytes());
-                out.flush();
+                shell.outputStream.write("echo Started\n");
+                shell.outputStream.flush();
 
                 while (true) {
-                    String line = in.readLine();
+                    String line = shell.inputStream.readLine();
                     if (line == null) {
                         throw new EOFException();
                     }

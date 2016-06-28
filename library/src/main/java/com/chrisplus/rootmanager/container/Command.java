@@ -4,7 +4,6 @@ import com.chrisplus.rootmanager.Constants;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 public abstract class Command {
 
@@ -103,10 +102,6 @@ public abstract class Command {
         String command = sb.toString();
         RootUtils.Log("Sending command(s): " + command);
         return command;
-    }
-
-    public void writeCommand(OutputStream out) throws IOException {
-        out.write(getCommand().getBytes());
     }
 
 }
