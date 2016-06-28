@@ -40,7 +40,6 @@ install {
                 url project.repo_site
 
                 packaging 'aar'
-                groupId group
                 artifactId 'library'
                 version project.version_name
 
@@ -70,10 +69,6 @@ install {
 }
 
 bintray {
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('publish.properties').newDataInputStream())
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
     configurations = ['archives']
     pkg {
         repo = "maven"
@@ -106,7 +101,7 @@ artifacts {
 
 def Properties props = new Properties()
 def propFile = new File('publish.properties')
-if (propFile.canRead()) {
+if (propFile.isFile() && propFile.canRead()) {
     props.load(new FileInputStream(propFile))
 
     if (props != null && props.containsKey('bintray.user') &&
