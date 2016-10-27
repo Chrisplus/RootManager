@@ -32,7 +32,7 @@ public class RootUtils {
      * To check if the caller is on the ui thread, throw exception if it calls
      * on UI thread.
      */
-    public static void checkUIThread() {
+    public static void checkUIThread(){
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException("Please do not call this fuction on UI thread");
         }

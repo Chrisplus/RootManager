@@ -14,6 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import rx.Observable;
+import rx.Subscriber;
+
 public class RootManager {
 
     private static RootManager instance;
@@ -236,6 +239,7 @@ public class RootManager {
         return builder.build();
 
     }
+
 
     /**
      * Uninstall an app by its package name.
