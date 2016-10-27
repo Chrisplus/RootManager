@@ -45,6 +45,7 @@ public class RootManager {
      * </p>
      *
      * @return this device is rooted or not.
+     * @deprecated use {@link #isRootAvailable()} instead.
      */
     public boolean hasRooted() {
         if (hasRooted == null) {
@@ -63,27 +64,65 @@ public class RootManager {
     }
 
     /**
+     * Check if the device is rooted
+     * <p>
+     * This function check if the system has SU file. Note that though SU file exits, it might not
+     * work.
+     * </p>
+     *
+     * @return this device is rooted or not.
+     */
+    public boolean isRootAvailable() {
+        if (hasRooted == null || hasRooted == false) {
+            hasRooted = false;
+
+            for (String path : RootUtils.getPath()) {
+                if (path.endsWith(File.pathSeparator)) {
+                    path = path + File.pathSeparator;
+                }
+                File su = new File(path + "su");
+
+                if (su.exists()) {
+                    hasRooted = true;
+                    break;
+                }
+            }
+        }
+
+        return hasRooted;
+    }
+
+    /**
      * Try to obtain the root access.
      * <p>
-     * This function might lead to a popup to users, and wait for the input : grant or decline.
+     * This method might lead to a popup to users, and wait for the input : grant or deny.
      * </p>
      *
      * @return the app has been granted the root permission or not.
      */
     public boolean obtainPermission() {
-        if (!hasGivenPermission) {
+        if (hasGivenPermission) {
+            return hasGivenPermission;
+        }
+
+        if (System.currentTimeMillis() - lastPermissionCheck > Constants.PERMISSION_EXPIRE_TIME) {
             hasGivenPermission = accessRoot();
             lastPermissionCheck = System.currentTimeMillis();
-        } else {
-            if (lastPermissionCheck < 0
-                    || System.currentTimeMillis() - lastPermissionCheck
-                    > Constants.PERMISSION_EXPIRE_TIME) {
-                hasGivenPermission = accessRoot();
-                lastPermissionCheck = System.currentTimeMillis();
-            }
         }
 
         return hasGivenPermission;
+    }
+
+    /**
+     * Try to obtain the root permission on unrooted phones.
+     * <p>
+     * This method is experimental function, only used for debug and it might consume lots of time.
+     * </p>
+     *
+     * @return the app has been granted the root permission or not.
+     */
+    public boolean obtainPermissionOnUnrooted() {
+        return false;
     }
 
     /**

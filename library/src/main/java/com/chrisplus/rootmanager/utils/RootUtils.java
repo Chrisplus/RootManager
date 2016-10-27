@@ -7,6 +7,9 @@ import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * This class is a set of methods used in {@link RootManager}.
  *
@@ -33,6 +36,15 @@ public class RootUtils {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException("Please do not call this fuction on UI thread");
         }
+    }
+
+    /**
+     * Get the environment path.
+     *
+     * @return the environment path in a list.
+     */
+    public static List<String> getPath() {
+        return Arrays.asList(System.getenv("PATH").split(":"));
     }
 
     /**
