@@ -4,21 +4,22 @@ import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 public class Shell {
 
     private final static String TAG = Shell.class.getSimpleName();
-    private static final String token = "F*D^W@#FGF";
+    private static final String token = UUID.randomUUID().toString();
     private static int shellTimeout = 10000;
 
     private static String error = "";
@@ -33,8 +34,8 @@ public class Shell {
     private final List<Command> commands = new ArrayList<>();
     private boolean close = false;
 
-    private int write;
-    private int read;
+    private int writeIndex;
+    private int readIndex;
 
     private Runnable input = new Runnable() {
         public void run() {
@@ -45,7 +46,7 @@ public class Shell {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                write = 0;
+                writeIndex = 0;
                 closeWriter(outputStream);
             }
         }
@@ -60,7 +61,7 @@ public class Shell {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                read = 0;
+                readIndex = 0;
                 closeReader(inputStream);
                 closeReader(errorStream);
                 closeWriter(outputStream);
@@ -84,21 +85,30 @@ public class Shell {
         try {
             worker.join(shellTimeout);
             if (worker.exit == -911) {
+
                 proc.destroy();
                 closeReader(inputStream);
                 closeReader(inputStream);
                 closeWriter(outputStream);
                 throw new TimeoutException(error);
+
             }
             if (worker.exit == -42) {
+
                 proc.destroy();
                 closeReader(inputStream);
                 closeReader(errorStream);
                 closeWriter(outputStream);
                 throw new PermissionException("Root Access Denied");
+
             } else {
-                new Thread(input, "Shell Input").start();
-                new Thread(output, "Shell Output").start();
+                Thread shellInput = new Thread(input, "RootManager Input");
+                shellInput.setPriority(Thread.NORM_PRIORITY);
+                shellInput.start();
+
+                Thread shellOutput = new Thread(output, "RootManager Output");
+                shellOutput.setPriority(Thread.NORM_PRIORITY);
+                shellOutput.start();
             }
         } catch (InterruptedException ex) {
             worker.interrupt();
@@ -107,15 +117,6 @@ public class Shell {
         }
     }
 
-    public static Shell getOpenShell() {
-        if (rootShell != null) {
-            return rootShell;
-        } else if (customShell != null) {
-            return customShell;
-        } else {
-            return null;
-        }
-    }
 
     public static Shell startRootShell() throws IOException, TimeoutException, PermissionException {
         return Shell.startRootShell(shellTimeout);
@@ -126,7 +127,7 @@ public class Shell {
         Shell.shellTimeout = timeout;
 
         if (rootShell == null) {
-            RootUtils.Log("Starting Root Shell!");
+            RootUtils.Log(TAG, "Starting root shell!");
             String cmd = "su";
 
             int retries = 0;
@@ -135,13 +136,24 @@ public class Shell {
                     rootShell = new Shell(cmd);
                 } catch (IOException e) {
                     if (retries++ >= 5) {
-                        RootUtils.Log("Could not start shell");
+                        RootUtils.Log(TAG, "Could not start shell");
+                        throw e;
+                    }
+                } catch (PermissionException e) {
+                    if (retries++ >= 5) {
+                        RootUtils.Log(TAG, "Could not start shell, permission denied");
+                        throw e;
+                    }
+
+                } catch (TimeoutException e) {
+                    if (retries++ >= 5) {
+                        RootUtils.Log(TAG, "Could not start shell, timeout");
                         throw e;
                     }
                 }
             }
         } else {
-            RootUtils.Log("Using Existing Root Shell!");
+            RootUtils.Log(TAG, "Using existing root shell!");
         }
 
         return rootShell;
@@ -157,19 +169,15 @@ public class Shell {
         Shell.shellTimeout = timeout;
 
         if (customShell == null) {
-            RootUtils.Log("Starting Custom Shell!");
+            RootUtils.Log(TAG, "Starting custom shell");
             customShell = new Shell(shellPath);
         } else {
-            RootUtils.Log("Using Existing Custom Shell!");
+            RootUtils.Log(TAG, "Using existing custom shell");
         }
 
         return customShell;
     }
 
-    public static void runRootCommand(Command command) throws IOException, TimeoutException,
-            PermissionException {
-        startRootShell().add(command);
-    }
 
     public static void closeCustomShell() throws IOException {
         if (customShell == null) {
@@ -239,25 +247,28 @@ public class Shell {
     private void writeCommands() throws IOException, InterruptedException {
 
         while (true) {
-            DataOutputStream out;
             synchronized (commands) {
-                while (!close && write >= commands.size()) {
+                while (!close && writeIndex >= commands.size()) {
                     commands.wait();
                 }
             }
-            if (write < commands.size()) {
-                Command next = commands.get(write);
+            if (writeIndex < commands.size()) {
+                Command next = commands.get(writeIndex);
                 outputStream.write(next.getCommand());
-                String line = "\necho " + token + " " + write + " $?\n";
+
+                String line = "\necho " + token + " " + writeIndex + " $?\n";
                 outputStream.write(line);
                 outputStream.flush();
-                write++;
+                writeIndex++;
+
             } else if (close) {
+
                 outputStream.write("\nexit 0\n");
                 outputStream.flush();
                 outputStream.close();
-                RootUtils.Log("Closing shell");
+                RootUtils.Log(TAG, "closing shell");
                 return;
+
             }
         }
 
@@ -265,25 +276,32 @@ public class Shell {
 
     private void readOutput() throws IOException, InterruptedException {
         Command command = null;
-        while (true) {
+
+        while (!close || inputStream.ready() || readIndex < commands.size()) {
+
             String line = inputStream.readLine();
             if (line == null) {
                 break;
             }
+
             if (command == null) {
-                if (read >= commands.size()) {
+                if (readIndex >= commands.size()) {
                     if (close) {
                         break;
                     }
                     continue;
                 }
-                command = commands.get(read);
+                command = commands.get(readIndex);
             }
 
             int pos = line.indexOf(token);
-            if (pos > 0) {
+
+            if (pos == -1) {
+                command.onUpdate(command.getID(), line);
+            } else if (pos > 0) {
                 command.onUpdate(command.getID(), line.substring(0, pos));
             }
+
             if (pos >= 0) {
                 line = line.substring(pos);
                 String fields[] = line.split(" ");
@@ -292,6 +310,7 @@ public class Shell {
                     try {
                         id = Integer.parseInt(fields[1]);
                     } catch (NumberFormatException e) {
+                        e.printStackTrace();
                     }
                     int exitCode = -1;
 
@@ -300,29 +319,29 @@ public class Shell {
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
                     }
-                    if (id == read) {
+                    if (id == readIndex) {
                         readError(command);
                         command.setExitCode(exitCode);
-                        read++;
+                        readIndex++;
                         command = null;
                         continue;
                     }
                 }
             }
-            command.onUpdate(command.getID(), line);
         }
-        RootUtils.Log("Read all output");
+
+        RootUtils.Log(TAG, "Read all output");
         proc.waitFor();
         proc.destroy();
-        RootUtils.Log("Shell destroyed");
+        RootUtils.Log(TAG, "Shell destroyed");
 
-        while (read < commands.size()) {
+        while (readIndex < commands.size()) {
             if (command == null) {
-                command = commands.get(read);
+                command = commands.get(readIndex);
             }
             command.terminate("Unexpected Termination.");
             command = null;
-            read++;
+            readIndex++;
         }
     }
 
@@ -365,22 +384,10 @@ public class Shell {
         }
     }
 
-    public int countCommands() {
-        return commands.size();
-    }
+    private static class Worker extends Thread {
 
-    public void waitFor() throws IOException, InterruptedException {
-        close();
-        if (commands.size() > 0) {
-            Command command = commands.get(commands.size() - 1);
-            command.waitForFinish();
-        }
-    }
-
-    protected static class Worker extends Thread {
-
-        public int exit = -911;
-        public Shell shell;
+        private int exit = -911;
+        private Shell shell;
 
         private Worker(Shell shell) {
             this.shell = shell;
@@ -396,25 +403,43 @@ public class Shell {
                     String line = shell.inputStream.readLine();
                     if (line == null) {
                         throw new EOFException();
-                    }
-                    if ("".equals(line)) {
+                    } else if ("".equals(line)) {
                         continue;
-                    }
-                    if ("Started".equals(line)) {
+                    } else if ("Started".equals(line)) {
                         this.exit = 1;
+                        setShellOom();
                         break;
                     }
-                    Shell.error = "unkown error occured.";
+                    Shell.error = "unknown error";
                 }
             } catch (IOException e) {
                 exit = -42;
                 if (e.getMessage() != null) {
                     Shell.error = e.getMessage();
                 } else {
-                    Shell.error = "RootAccess denied?.";
+                    Shell.error = "RootAccess denied";
                 }
             }
 
+        }
+
+        private void setShellOom() {
+            try {
+                Class<?> processClass = shell.proc.getClass();
+                Field field;
+                try {
+                    field = processClass.getDeclaredField("pid");
+                } catch (NoSuchFieldException e) {
+                    field = processClass.getDeclaredField("id");
+                }
+                field.setAccessible(true);
+                int pid = (Integer) field.get(shell.proc);
+                shell.outputStream.write("(echo -17 > /proc/" + pid + "/oom_adj) &> /dev/null\n");
+                shell.outputStream.write("(echo -17 > /proc/$$/oom_adj) &> /dev/null\n");
+                shell.outputStream.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
