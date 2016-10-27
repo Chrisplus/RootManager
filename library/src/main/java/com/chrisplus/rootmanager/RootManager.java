@@ -129,7 +129,7 @@ public class RootManager {
         }
 
         String command = Constants.COMMAND_INSTALL;
-        if (RootUtils.isNeedPathSDK()) {
+        if (RootUtils.isJellyBeanMR1()) {
             command = Constants.COMMAND_INSTALL_PATCH + command;
         }
 

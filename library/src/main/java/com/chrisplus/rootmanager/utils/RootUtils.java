@@ -19,6 +19,13 @@ public class RootUtils {
     private static int cmdID = 0;
 
     /**
+     * Avoid instantiating the util class
+     */
+    private RootUtils() {
+
+    }
+
+    /**
      * To check if the caller is on the ui thread, throw exception if it calls
      * on UI thread.
      */
@@ -66,8 +73,17 @@ public class RootUtils {
      *
      * @return whether the device need to be set a new SDK location.
      */
-    public static boolean isNeedPathSDK() {
-        return android.os.Build.VERSION.SDK_INT == 17;
+    public static boolean isJellyBeanMR1() {
+        return android.os.Build.VERSION.SDK_INT == Build.VERSION_CODES.JELLY_BEAN_MR1;
+    }
+
+    /**
+     * Check is the sdk is Jelly Bean (16) and upper
+     *
+     * @return true if Jelly Bean and upper
+     */
+    public static boolean isJellyBeanUpper() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
     }
 
     /**
@@ -76,6 +92,6 @@ public class RootUtils {
      * @return true for 4.4 upper.
      */
     public static boolean isKitKatUpper() {
-        return Build.VERSION.SDK_INT >= 19;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 }
