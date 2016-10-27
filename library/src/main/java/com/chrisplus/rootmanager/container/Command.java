@@ -7,6 +7,8 @@ import java.io.IOException;
 
 public abstract class Command {
 
+    private static final String TAG = Command.class.getSimpleName();
+
     private String[] commands;
 
     private boolean isFinished;
@@ -46,15 +48,25 @@ public abstract class Command {
         }
     }
 
+    public void terminate() {
+        RootUtils.Log(TAG, "Terminate the command upon users' requests");
+        setExitCode(-358);
+    }
+
     public void terminate(String reason) {
         try {
-            RootUtils.Log("Terminate all shells with reason " + reason);
+            RootUtils.Log(TAG, "Terminate the shell with reason " + reason);
+            //TODO only terminate command, not close the shells
             Shell.closeAll();
             setExitCode(-1);
         } catch (IOException e) {
             e.printStackTrace();
-            RootUtils.Log("Terminate all shells and io exception happens");
+            RootUtils.Log(TAG, "Terminate the shell and io exception happens");
         }
+    }
+
+    public boolean isFinished() {
+        return isFinished;
     }
 
     public int waitForFinish(long timeout) throws InterruptedException {
@@ -63,7 +75,7 @@ public abstract class Command {
                 this.wait(timeout);
                 if (!isFinished) {
                     isFinished = true;
-                    RootUtils.Log("Timeout Exception has occurred.");
+                    RootUtils.Log(TAG, "Timeout Exception has occurred.");
                     terminate("Timeout Exception");
                 }
             }
@@ -100,7 +112,7 @@ public abstract class Command {
             sb.append('\n');
         }
         String command = sb.toString();
-        RootUtils.Log("Sending command(s): " + command);
+        RootUtils.Log(TAG, "Sending command(s): " + command);
         return command;
     }
 

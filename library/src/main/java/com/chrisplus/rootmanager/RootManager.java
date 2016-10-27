@@ -12,10 +12,14 @@ import android.text.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import rx.Observable;
+import rx.Single;
 import rx.Subscriber;
+import rx.Subscription;
+import rx.functions.Func1;
 
 public class RootManager {
 
@@ -199,22 +203,7 @@ public class RootManager {
                 if (TextUtils.isEmpty(finalInfo)) {
                     builder.setInstallFailed();
                 } else {
-                    if (finalInfo.contains("success") || finalInfo.contains("Success")) {
-                        builder.setInstallSuccess();
-                    } else if (finalInfo.contains("failed") || finalInfo.contains("FAILED")) {
-                        if (finalInfo.contains("FAILED_INSUFFICIENT_STORAGE")) {
-                            builder.setInsallFailedNoSpace();
-                        } else if (finalInfo.contains("FAILED_INCONSISTENT_CERTIFICATES")) {
-                            builder.setInstallFailedWrongCer();
-                        } else if (finalInfo.contains("FAILED_CONTAINER_ERROR")) {
-                            builder.setInstallFailedWrongCer();
-                        } else {
-                            builder.setInstallFailed();
-                        }
-
-                    } else {
-                        builder.setInstallFailed();
-                    }
+                    setInstallPackageResult(builder, finalInfo);
                 }
             }
 
@@ -237,6 +226,102 @@ public class RootManager {
         }
 
         return builder.build();
+    }
+
+    public Single<Result> observeInstallPackage(final String apkPath) {
+        return observeInstallPackage(apkPath, "a");
+    }
+
+    public Single<Result> observeInstallPackage(final String apkPath, final String
+            installLocation) {
+
+
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                RootUtils.checkUIThread();
+
+                if (TextUtils.isEmpty(apkPath)) {
+                    subscriber.onError(new IllegalArgumentException());
+                }
+
+                String command = Constants.COMMAND_INSTALL;
+                if (RootUtils.isJellyBeanMR1()) {
+                    command = Constants.COMMAND_INSTALL_PATCH + command;
+                }
+
+                command = command + apkPath;
+
+                if (TextUtils.isEmpty(installLocation)) {
+                    if (installLocation.equalsIgnoreCase("ex")) {
+                        command = command + Constants.COMMAND_INSTALL_LOCATION_EXTERNAL;
+                    } else if (installLocation.equalsIgnoreCase("in")) {
+                        command = command + Constants.COMMAND_INSTALL_LOCATION_INTERNAL;
+                    }
+                }
+
+                final Command commandImpl = new Command(command) {
+
+                    @Override
+                    public void onUpdate(int id, String message) {
+                        subscriber.onNext(message);
+                    }
+
+                    @Override
+                    public void onFinished(int id) {
+                        subscriber.onCompleted();
+                    }
+
+                };
+
+                subscriber.add(new Subscription() {
+                    @Override
+                    public void unsubscribe() {
+                        if (!commandImpl.isFinished()) {
+                            commandImpl.terminate();
+                        }
+                    }
+
+                    @Override
+                    public boolean isUnsubscribed() {
+                        return false;
+                    }
+                });
+
+                try {
+                    Shell.startRootShell().add(commandImpl).waitForFinish();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        })
+                .filter(new Func1<String, Boolean>() {
+                    @Override
+                    public Boolean call(String message) {
+                        return !TextUtils.isEmpty(message) && (message.contains("success") ||
+                                message
+                                        .contains("Success") || message.contains("failed") ||
+                                message
+                                        .contains
+                                                ("FAILED"));
+                    }
+                })
+                .toList()
+                .map(new Func1<List<String>, Result>() {
+                    @Override
+                    public Result call(List<String> messages) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (String next : messages) {
+                            stringBuilder.append(next).append("\n");
+                        }
+
+                        Result.ResultBuilder resultBuilder = Result.newBuilder();
+                        String finalMessage = stringBuilder.toString();
+                        setInstallPackageResult(resultBuilder, finalMessage);
+                        return resultBuilder.build();
+
+                    }
+                }).toSingle();
 
     }
 
@@ -637,6 +722,20 @@ public class RootManager {
         }
 
         return result;
-
     }
+
+    private void setInstallPackageResult(ResultBuilder resultBuilder, String message) {
+        if (message.contains("success") || message.contains("Success")) {
+            resultBuilder.setCommandSuccess();
+        } else if (message.contains("FAILED_INSUFFICIENT_STORAGE")) {
+            resultBuilder.setInsallFailedNoSpace();
+        } else if (message.contains("FAILED_INCONSISTENT_CERTIFICATES")) {
+            resultBuilder.setInstallFailedWrongCer();
+        } else if (message.contains("FAILED_CONTAINER_ERROR")) {
+            resultBuilder.setInstallFailedWrongCer();
+        } else {
+            resultBuilder.setInstallFailed();
+        }
+    }
+
 }

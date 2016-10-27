@@ -3,6 +3,7 @@ package com.chrisplus.rootmanager.container;
 import com.chrisplus.rootmanager.utils.RootUtils;
 
 public class Result {
+    private final static String TAG = Result.class.getSimpleName();
 
     /* members */
     private String message;
@@ -26,7 +27,7 @@ public class Result {
     }
 
     public Boolean getResult() {
-        RootUtils.Log("Status Code is " + statusCode);
+        RootUtils.Log(TAG, "Status Code is " + statusCode);
         if (statusCode == 0) {
             return true;
         } else if (statusCode <= 100) {
