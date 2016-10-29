@@ -17,9 +17,11 @@ import java.util.concurrent.TimeoutException;
 
 import rx.Observable;
 import rx.Single;
+import rx.SingleSubscriber;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 public class RootManager {
 
@@ -228,10 +230,36 @@ public class RootManager {
         return builder.build();
     }
 
+    /**
+     * Install a app on the specific location.
+     * <p>
+     * the operation will run on IO thread.
+     * </p>
+     *
+     * @param apkPath the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII
+     *                is supported.
+     * @return the result {@link Result} of running the command.
+     */
     public Single<Result> observeInstallPackage(final String apkPath) {
         return observeInstallPackage(apkPath, "a");
     }
 
+    /**
+     * Install a app on the specific location.
+     * <p>
+     * the operation will run on IO thread.
+     * </p>
+     *
+     * @param apkPath         the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII
+     *                        is supported.
+     * @param installLocation the location of this installation.
+     *                        <ul>
+     *                        <li>auto: choose the install  location automatically.</li>
+     *                        <li>ex: install the app on sdcard.</li>
+     *                        <li>in: install the app on ram</li>
+     *                        </ul>
+     * @return the result {@link Result} of running the command.
+     */
     public Single<Result> observeInstallPackage(final String apkPath, final String
             installLocation) {
 
@@ -239,8 +267,6 @@ public class RootManager {
         return Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(final Subscriber<? super String> subscriber) {
-                RootUtils.checkUIThread();
-
                 if (TextUtils.isEmpty(apkPath)) {
                     subscriber.onError(new IllegalArgumentException());
                 }
@@ -294,7 +320,7 @@ public class RootManager {
                     subscriber.onError(e);
                 }
             }
-        })
+        }).subscribeOn(Schedulers.io())
                 .filter(new Func1<String, Boolean>() {
                     @Override
                     public Boolean call(String message) {
@@ -391,6 +417,83 @@ public class RootManager {
     }
 
     /**
+     * Uninstall an app by its package name.
+     * <p>
+     * the operation will run on IO thread.
+     * </p>
+     *
+     * @param packageName the app's package name.
+     * @return the result {@link Result} of running the command.
+     */
+    public Single<Result> observeUninstallPackage(final String packageName) {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                if (TextUtils.isEmpty(packageName)) {
+                    subscriber.onError(new IllegalArgumentException());
+                }
+
+                String command = Constants.COMMAND_UNINSTALL + packageName;
+
+                final Command commandImpl = new Command(command) {
+                    @Override
+                    public void onUpdate(int id, String message) {
+                        subscriber.onNext(message);
+                    }
+
+                    @Override
+                    public void onFinished(int id) {
+                        subscriber.onCompleted();
+                    }
+                };
+
+                subscriber.add(new Subscription() {
+                    @Override
+                    public void unsubscribe() {
+                        if (!commandImpl.isFinished()) {
+                            commandImpl.terminate();
+                        }
+                    }
+
+                    @Override
+                    public boolean isUnsubscribed() {
+                        return false;
+                    }
+                });
+
+                try {
+                    Shell.startRootShell().add(commandImpl).waitForFinish();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+
+            }
+        }).subscribeOn(Schedulers.io())
+                .filter(new Func1<String, Boolean>() {
+                    @Override
+                    public Boolean call(String message) {
+                        return !TextUtils.isEmpty(message);
+                    }
+                })
+                .toList()
+                .map(new Func1<List<String>, Result>() {
+                    @Override
+                    public Result call(List<String> messages) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (String next : messages) {
+                            stringBuilder.append(next).append("\n");
+                        }
+
+                        Result.ResultBuilder resultBuilder = Result.newBuilder();
+                        String finalMessage = stringBuilder.toString();
+                        setUninstallPackageResult(resultBuilder, finalMessage);
+                        return resultBuilder.build();
+                    }
+                })
+                .toSingle();
+    }
+
+    /**
      * Uninstall a system app by its path.
      * <p>
      * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
@@ -417,6 +520,41 @@ public class RootManager {
 
         return builder.setFailed().build();
     }
+
+
+    /**
+     * Uninstall a system app by its path.
+     * <p>
+     * the operation will run on IO thread.
+     * </p>
+     *
+     * @param apkPath the source apk path of the system app.
+     * @return the result {@link Result} of running the command.
+     */
+    public Single<Result> observeUninstallSystemApp(final String apkPath) {
+        return Single.create(new Single.OnSubscribe<Result>() {
+            @Override
+            public void call(SingleSubscriber<? super Result> singleSubscriber) {
+                if (TextUtils.isEmpty(apkPath)) {
+                    singleSubscriber.onError(new IllegalArgumentException());
+                }
+
+                ResultBuilder builder = Result.newBuilder();
+
+                if (remount(Constants.PATH_SYSTEM, "rw")) {
+                    File apkFile = new File(apkPath);
+                    if (apkFile.exists()) {
+                        singleSubscriber.onSuccess(runCommand("rm '" + apkPath + "'"));
+                    } else {
+                        singleSubscriber.onSuccess(builder.setFailed().build());
+                    }
+                } else {
+                    singleSubscriber.onSuccess(builder.setFailed().build());
+                }
+            }
+        });
+    }
+
 
     /**
      * Install a binary file into <I>"/system/bin/"</I>
@@ -507,24 +645,11 @@ public class RootManager {
 
     }
 
-    /**
-     * Run a binary in <i>"/system/bin/"</i>
-     *
-     * @param binaryName the file name of binary, containing params if necessary.
-     * @return the result {@link Result} of running the command.
-     */
-    public Result runBinBinary(String binaryName) {
-        ResultBuilder builder = Result.newBuilder();
-        if (TextUtils.isEmpty(binaryName)) {
-            return builder.setFailed().build();
-        }
-        return runBinary(Constants.PATH_SYSTEM_BIN + binaryName);
-    }
 
     /**
-     * Run a binary file.
+     * Run a binary file in the root shell.
      *
-     * @param path the file path of binary, containing params if necessary.
+     * @param path the file path of binary with parameters if necessary.
      * @return the result {@link Result} of running the command.
      */
     public Result runBinary(String path) {
@@ -532,7 +657,17 @@ public class RootManager {
     }
 
     /**
-     * Run raw commands in default shell.
+     * Run a binary file in the root shell.
+     *
+     * @param path the file path of binary with containing parameters if necessary.
+     * @return the output messages wrapped in {@link Observable}
+     */
+    public Observable<String> obverseRunBinary(String path) {
+        return observeRunCommand(path);
+    }
+
+    /**
+     * Run raw commands in the root shell.
      *
      * @param command the command string.
      * @return the result {@link Result} of running the command.
@@ -579,6 +714,55 @@ public class RootManager {
     }
 
     /**
+     * Run raw commands in the root shell
+     *
+     * @param command the command with parameters if necessary.
+     * @return the output messages wrapped in {@link Observable}
+     */
+    public Observable<String> observeRunCommand(final String command) {
+        return Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(final Subscriber<? super String> subscriber) {
+                if (TextUtils.isEmpty(command)) {
+                    subscriber.onError(new IllegalArgumentException());
+                }
+
+                final Command commandImpl = new Command(command) {
+                    @Override
+                    public void onUpdate(int id, String message) {
+                        subscriber.onNext(message);
+                    }
+
+                    @Override
+                    public void onFinished(int id) {
+                        subscriber.onCompleted();
+                    }
+                };
+
+                subscriber.add(new Subscription() {
+                    @Override
+                    public void unsubscribe() {
+                        if (!commandImpl.isFinished()) {
+                            commandImpl.terminate();
+                        }
+                    }
+
+                    @Override
+                    public boolean isUnsubscribed() {
+                        return false;
+                    }
+                });
+
+                try {
+                    Shell.startRootShell().add(commandImpl).waitForFinish();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
+    }
+
+    /**
      * Get screen shot.
      *
      * @param path the path with file name and extend name.
@@ -600,6 +784,7 @@ public class RootManager {
      *
      * @param path the path with file name and extend name.
      * @return the operation result.
+     * @deprecated use
      */
     public boolean screenRecord(String path) {
         return screenRecord(path, Constants.SCREENRECORD_BITRATE_DEFAULT,
@@ -620,9 +805,15 @@ public class RootManager {
         if (!RootUtils.isKitKatUpper() || TextUtils.isEmpty(path)) {
             return false;
         }
-        Result res = runCommand(Constants.COMMAND_SCREENRECORD + "--bit-rate " + bitRate
+        Result res = runCommand(Constants.COMMAND_SCREENRECORD + " --verbose" + " --bit-rate " +
+                bitRate
                 + " --time-limit " + time + " " + path);
         return res.getResult();
+    }
+
+    public Observable<String> observeScreenRecord(final String path, long bitRate, long time) {
+        return observeRunCommand(Constants.COMMAND_SCREENRECORD + " --verbose" + " --bit-rate " +
+                bitRate + " --time-limit " + time + " " + path);
     }
 
     /**
@@ -735,6 +926,15 @@ public class RootManager {
             resultBuilder.setInstallFailedWrongCer();
         } else {
             resultBuilder.setInstallFailed();
+        }
+    }
+
+    private void setUninstallPackageResult(ResultBuilder resultBuilder, String message) {
+        if (!TextUtils.isEmpty(message) && (message.contains("Success") || message.contains
+                ("success"))) {
+            resultBuilder.setUninstallSuccess();
+        } else {
+            resultBuilder.setUninstallFailed();
         }
     }
 

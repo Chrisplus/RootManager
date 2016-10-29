@@ -307,27 +307,41 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onClick(View v) {
             final String pkgName = pnText.getText().toString();
-            runAsyncTask(new AsyncTask<Void, Void, Result>() {
-
-                @Override
-                protected void onPreExecute() {
-                    updateLog("Uninstalling package " + pkgName + " ...........");
-                    super.onPreExecute();
-                }
-
-                @Override
-                protected Result doInBackground(Void... params) {
-                    return RootManager.getInstance().uninstallPackage(pkgName);
-                }
-
-                @Override
-                protected void onPostExecute(Result result) {
-                    updateLog("Uninstall " + pkgName + " " + result.getResult()
-                            + " with the message " + result.getMessage());
-                    super.onPostExecute(result);
-                }
-
-            });
+//            runAsyncTask(new AsyncTask<Void, Void, Result>() {
+//
+//                @Override
+//                protected void onPreExecute() {
+//                    updateLog("Uninstalling package " + pkgName + " ...........");
+//                    super.onPreExecute();
+//                }
+//
+//                @Override
+//                protected Result doInBackground(Void... params) {
+//                    return RootManager.getInstance().uninstallPackage(pkgName);
+//                }
+//
+//                @Override
+//                protected void onPostExecute(Result result) {
+//                    updateLog("Uninstall " + pkgName + " " + result.getResult()
+//                            + " with the message " + result.getMessage());
+//                    super.onPostExecute(result);
+//                }
+//
+//            });
+            mSubscription = RootManager.getInstance().observeUninstallPackage(pkgName)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Result>() {
+                        @Override
+                        public void call(Result result) {
+                            updateLog("Uninstall " + pkgName + " " + result.getResult()
+                                    + " with the message " + result.getMessage());
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            updateLog("Install exception " + throwable.getClass().getSimpleName());
+                        }
+                    });
         }
 
     };
