@@ -2,6 +2,7 @@ package com.chrisplus.rootmanagersample;
 
 import com.chrisplus.rootmanager.RootManager;
 import com.chrisplus.rootmanager.container.Result;
+import com.chrisplus.rootmanager.utils.RootUtils;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -68,7 +69,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (!mSubscription.isUnsubscribed()) {
+        if (mSubscription != null && !mSubscription.isUnsubscribed()) {
             mSubscription.unsubscribe();
         }
     }
@@ -216,6 +217,7 @@ public class MainActivity extends ActionBarActivity {
 
                 @Override
                 protected Result doInBackground(Void... params) {
+                    RootUtils.getArchName();
                     return RootManager.getInstance().runCommand(command);
                 }
 

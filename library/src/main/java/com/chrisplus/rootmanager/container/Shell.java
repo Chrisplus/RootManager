@@ -127,7 +127,7 @@ public class Shell {
 
         if (rootShell == null) {
             RootUtils.Log(TAG, "Starting root shell!");
-            String cmd = "su";
+            String cmd = "/system/bin/sh";
 
             int retries = 0;
             while (rootShell == null) {
@@ -135,18 +135,18 @@ public class Shell {
                     rootShell = new Shell(cmd);
                 } catch (IOException e) {
                     if (retries++ >= 5) {
-                        RootUtils.Log(TAG, "Could not start shell");
+                        RootUtils.Log(TAG, "Can not start shell");
                         throw e;
                     }
                 } catch (PermissionException e) {
                     if (retries++ >= 5) {
-                        RootUtils.Log(TAG, "Could not start shell, permission denied");
+                        RootUtils.Log(TAG, "Can not start shell, permission denied");
                         throw e;
                     }
 
                 } catch (TimeoutException e) {
                     if (retries++ >= 5) {
-                        RootUtils.Log(TAG, "Could not start shell, timeout");
+                        RootUtils.Log(TAG, "Can not start shell, timeout");
                         throw e;
                     }
                 }
@@ -351,6 +351,7 @@ public class Shell {
                 while (true) {
                     String line = shell.inputStream.readLine();
                     if (line == null) {
+                        RootUtils.Log(TAG, "start check null read");
                         throw new EOFException();
                     } else if ("".equals(line)) {
                         continue;
@@ -362,7 +363,6 @@ public class Shell {
                     Shell.error = "unknown error";
                 }
             } catch (IOException e) {
-                e.printStackTrace();
                 exit = -42;
                 if (e.getMessage() != null) {
                     Shell.error = e.getMessage();

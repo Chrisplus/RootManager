@@ -878,19 +878,21 @@ public class RootManager {
 
         boolean result = false;
         accessRoot = false;
-
-        Command commandImpl = new Command("id") {
+        String getSuCommands[] = {"su", "id"};
+        final StringBuilder messageBuilder = new StringBuilder();
+        Command commandImpl = new Command(getSuCommands) {
 
             @Override
             public void onUpdate(int id, String message) {
-                if (message != null && message.toLowerCase().contains("uid=0")) {
-                    accessRoot = true;
-                }
+                messageBuilder.append(message);
             }
 
             @Override
             public void onFinished(int id) {
-
+                String finalMesssage = messageBuilder.toString();
+                if (finalMesssage != null && finalMesssage.toLowerCase().contains("uid=0")) {
+                    accessRoot = true;
+                }
             }
 
         };
