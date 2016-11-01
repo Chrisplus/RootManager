@@ -32,3 +32,7 @@ proguard/
 # release config
 release.properties
 publish.properties
+
+# native code generated files
+libs/
+obj/
