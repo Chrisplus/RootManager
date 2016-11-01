@@ -24,7 +24,6 @@ public class Shell {
 
     private static String error = "";
     private static Shell rootShell = null;
-    private static Shell customShell = null;
 
     private final Process proc;
     private final BufferedReader inputStream;
@@ -159,51 +158,12 @@ public class Shell {
         return rootShell;
     }
 
-    public static Shell startCustomShell(String shellPath) throws IOException, TimeoutException,
-            PermissionException {
-        return Shell.startCustomShell(shellPath, shellTimeout);
-    }
-
-    public static Shell startCustomShell(String shellPath, int timeout) throws IOException,
-            TimeoutException, PermissionException {
-        Shell.shellTimeout = timeout;
-
-        if (customShell == null) {
-            RootUtils.Log(TAG, "Starting custom shell");
-            customShell = new Shell(shellPath);
-        } else {
-            RootUtils.Log(TAG, "Using existing custom shell");
-        }
-
-        return customShell;
-    }
-
-
-    public static void closeCustomShell() throws IOException {
-        if (customShell == null) {
-            return;
-        }
-        customShell.close();
-    }
 
     public static void closeRootShell() throws IOException {
         if (rootShell == null) {
             return;
         }
         rootShell.close();
-    }
-
-    public static void closeAll() throws IOException {
-        closeRootShell();
-        closeCustomShell();
-    }
-
-    public static boolean isCustomShellOpen() {
-        if (customShell == null) {
-            return false;
-        } else {
-            return true;
-        }
     }
 
     public static boolean isRootShellOpen() {
@@ -214,15 +174,6 @@ public class Shell {
         }
     }
 
-    public static boolean isAnyShellOpen() {
-        if (rootShell != null) {
-            return true;
-        } else if (customShell != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     private void closeWriter(final Writer writer) {
         if (writer != null) {
@@ -375,9 +326,7 @@ public class Shell {
         if (this == rootShell) {
             rootShell = null;
         }
-        if (this == customShell) {
-            customShell = null;
-        }
+
         synchronized (commands) {
             this.close = true;
             commands.notifyAll();
@@ -413,6 +362,7 @@ public class Shell {
                     Shell.error = "unknown error";
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 exit = -42;
                 if (e.getMessage() != null) {
                     Shell.error = e.getMessage();

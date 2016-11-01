@@ -57,7 +57,7 @@ public abstract class Command {
         try {
             RootUtils.Log(TAG, "Terminate the shell with reason " + reason);
             //TODO only terminate command, not close the shells
-            Shell.closeAll();
+            Shell.closeRootShell();
             setExitCode(-1);
         } catch (IOException e) {
             e.printStackTrace();
