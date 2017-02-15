@@ -15,13 +15,23 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import rx.Observable;
-import rx.Single;
-import rx.SingleSubscriber;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeEmitter;
+import io.reactivex.MaybeOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleObserver;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Cancellable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.internal.operators.single.SingleSubscribeOn;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class RootManager {
 
@@ -47,11 +57,7 @@ public class RootManager {
     }
 
     /**
-     * Check if the device is rooted
-     * <p>
-     * This function check if the system has SU file. Note that though SU file exits, it might not
-     * work.
-     * </p>
+     * Check if the device is rooted.
      *
      * @return this device is rooted or not.
      * @deprecated use {@link #isRootAvailable()} instead.
@@ -74,10 +80,6 @@ public class RootManager {
 
     /**
      * Check if the device is rooted
-     * <p>
-     * This function check if the system has SU file. Note that though SU file exits, it might not
-     * work.
-     * </p>
      *
      * @return this device is rooted or not.
      */
@@ -103,11 +105,8 @@ public class RootManager {
 
     /**
      * Try to obtain the root access.
-     * <p>
-     * This method might lead to a popup to users, and wait for the input : grant or deny.
-     * </p>
      *
-     * @return the app has been granted the root permission or not.
+     * @return the app has been granted the permission or not.
      */
     public boolean obtainPermission() {
         if (hasGivenPermission) {
@@ -124,9 +123,6 @@ public class RootManager {
 
     /**
      * Try to obtain the root permission on unrooted phones.
-     * <p>
-     * This method is experimental function, only used for debug and it might consume lots of time.
-     * </p>
      *
      * @return the app has been granted the root permission or not.
      */
@@ -137,7 +133,7 @@ public class RootManager {
     /**
      * Install an app on the device.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * Do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
      * otherwise.
      * </p>
      *
@@ -152,7 +148,7 @@ public class RootManager {
     /**
      * Install a app on the specific location.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * Do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
      * otherwise.
      * </p>
      *
@@ -231,24 +227,18 @@ public class RootManager {
     }
 
     /**
-     * Install a app on the specific location.
-     * <p>
-     * the operation will run on IO thread.
-     * </p>
+     * Install an app on the specific location asynchronously.
      *
      * @param apkPath the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII
      *                is supported.
      * @return the result {@link Result} of running the command.
      */
-    public Single<Result> observeInstallPackage(final String apkPath) {
+    public Maybe<Result> observeInstallPackage(final String apkPath) {
         return observeInstallPackage(apkPath, "a");
     }
 
     /**
-     * Install a app on the specific location.
-     * <p>
-     * the operation will run on IO thread.
-     * </p>
+     * Install a app on the specific location asynchronously.
      *
      * @param apkPath         the APK file path i.e., <I>"/sdcard/Tech_test.apk"</I> is OK. ASCII
      *                        is supported.
@@ -260,15 +250,15 @@ public class RootManager {
      *                        </ul>
      * @return the result {@link Result} of running the command.
      */
-    public Single<Result> observeInstallPackage(final String apkPath, final String
+    public Maybe<Result> observeInstallPackage(final String apkPath, final String
             installLocation) {
-
-
-        return Observable.create(new Observable.OnSubscribe<String>() {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(final Subscriber<? super String> subscriber) {
+            public void subscribe(final ObservableEmitter<String> observableEmitter)
+                    throws Exception {
+
                 if (TextUtils.isEmpty(apkPath)) {
-                    subscriber.onError(new IllegalArgumentException());
+                    observableEmitter.onError(new IllegalArgumentException());
                 }
 
                 String command = Constants.COMMAND_INSTALL;
@@ -290,26 +280,25 @@ public class RootManager {
 
                     @Override
                     public void onUpdate(int id, String message) {
-                        subscriber.onNext(message);
+                        observableEmitter.onNext(message);
                     }
 
                     @Override
                     public void onFinished(int id) {
-                        subscriber.onCompleted();
+                        observableEmitter.onComplete();
                     }
-
                 };
 
-                subscriber.add(new Subscription() {
+                observableEmitter.setDisposable(new Disposable() {
                     @Override
-                    public void unsubscribe() {
+                    public void dispose() {
                         if (!commandImpl.isFinished()) {
                             commandImpl.terminate();
                         }
                     }
 
                     @Override
-                    public boolean isUnsubscribed() {
+                    public boolean isDisposed() {
                         return false;
                     }
                 });
@@ -317,25 +306,22 @@ public class RootManager {
                 try {
                     Shell.startRootShell().add(commandImpl).waitForFinish();
                 } catch (Exception e) {
-                    subscriber.onError(e);
+                    observableEmitter.onError(e);
                 }
             }
         }).subscribeOn(Schedulers.io())
-                .filter(new Func1<String, Boolean>() {
+                .filter(new Predicate<String>() {
                     @Override
-                    public Boolean call(String message) {
+                    public boolean test(String message) throws Exception {
                         return !TextUtils.isEmpty(message) && (message.contains("success") ||
-                                message
-                                        .contains("Success") || message.contains("failed") ||
-                                message
-                                        .contains
-                                                ("FAILED"));
+                                message.contains("Success") || message.contains("failed") ||
+                                message.contains("FAILED"));
                     }
                 })
                 .toList()
-                .map(new Func1<List<String>, Result>() {
+                .map(new Function<List<String>, Result>() {
                     @Override
-                    public Result call(List<String> messages) {
+                    public Result apply(List<String> messages) throws Exception {
                         StringBuilder stringBuilder = new StringBuilder();
                         for (String next : messages) {
                             stringBuilder.append(next).append("\n");
@@ -345,9 +331,9 @@ public class RootManager {
                         String finalMessage = stringBuilder.toString();
                         setInstallPackageResult(resultBuilder, finalMessage);
                         return resultBuilder.build();
-
                     }
-                }).toSingle();
+                })
+                .toMaybe();
 
     }
 
@@ -355,7 +341,7 @@ public class RootManager {
     /**
      * Uninstall an app by its package name.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * Do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
      * otherwise.
      * </p>
      *
@@ -394,7 +380,6 @@ public class RootManager {
                     }
                 }
             }
-
         };
 
         try {
@@ -418,19 +403,17 @@ public class RootManager {
 
     /**
      * Uninstall an app by its package name.
-     * <p>
-     * the operation will run on IO thread.
-     * </p>
      *
      * @param packageName the app's package name.
      * @return the result {@link Result} of running the command.
      */
-    public Single<Result> observeUninstallPackage(final String packageName) {
-        return Observable.create(new Observable.OnSubscribe<String>() {
+    public Maybe<Result> observeUninstallPackage(final String packageName) {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(final Subscriber<? super String> subscriber) {
+            public void subscribe(final ObservableEmitter<String> observableEmitter)
+                    throws Exception {
                 if (TextUtils.isEmpty(packageName)) {
-                    subscriber.onError(new IllegalArgumentException());
+                    observableEmitter.onError(new IllegalArgumentException());
                 }
 
                 String command = Constants.COMMAND_UNINSTALL + packageName;
@@ -438,25 +421,25 @@ public class RootManager {
                 final Command commandImpl = new Command(command) {
                     @Override
                     public void onUpdate(int id, String message) {
-                        subscriber.onNext(message);
+                        observableEmitter.onNext(message);
                     }
 
                     @Override
                     public void onFinished(int id) {
-                        subscriber.onCompleted();
+                        observableEmitter.onComplete();
                     }
                 };
 
-                subscriber.add(new Subscription() {
+                observableEmitter.setDisposable(new Disposable() {
                     @Override
-                    public void unsubscribe() {
+                    public void dispose() {
                         if (!commandImpl.isFinished()) {
                             commandImpl.terminate();
                         }
                     }
 
                     @Override
-                    public boolean isUnsubscribed() {
+                    public boolean isDisposed() {
                         return false;
                     }
                 });
@@ -464,21 +447,20 @@ public class RootManager {
                 try {
                     Shell.startRootShell().add(commandImpl).waitForFinish();
                 } catch (Exception e) {
-                    subscriber.onError(e);
+                    observableEmitter.onError(e);
                 }
-
             }
         }).subscribeOn(Schedulers.io())
-                .filter(new Func1<String, Boolean>() {
+                .filter(new Predicate<String>() {
                     @Override
-                    public Boolean call(String message) {
+                    public boolean test(String message) throws Exception {
                         return !TextUtils.isEmpty(message);
                     }
                 })
                 .toList()
-                .map(new Func1<List<String>, Result>() {
+                .map(new Function<List<String>, Result>() {
                     @Override
-                    public Result call(List<String> messages) {
+                    public Result apply(List<String> messages) throws Exception {
                         StringBuilder stringBuilder = new StringBuilder();
                         for (String next : messages) {
                             stringBuilder.append(next).append("\n");
@@ -490,13 +472,13 @@ public class RootManager {
                         return resultBuilder.build();
                     }
                 })
-                .toSingle();
+                .toMaybe();
     }
 
     /**
      * Uninstall a system app by its path.
      * <p>
-     * do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
+     * Do NOT call this function on UI thread, {@link IllegalStateException} will be thrown
      * otherwise.
      * </p>
      *
@@ -524,35 +506,34 @@ public class RootManager {
 
     /**
      * Uninstall a system app by its path.
-     * <p>
-     * the operation will run on IO thread.
-     * </p>
      *
      * @param apkPath the source apk path of the system app.
      * @return the result {@link Result} of running the command.
      */
-    public Single<Result> observeUninstallSystemApp(final String apkPath) {
-        return Single.create(new Single.OnSubscribe<Result>() {
+    public Maybe<Result> observeUninstallSystemApp(final String apkPath) {
+
+        return Maybe.create(new MaybeOnSubscribe<Result>() {
             @Override
-            public void call(SingleSubscriber<? super Result> singleSubscriber) {
+            public void subscribe(MaybeEmitter<Result> maybeEmitter) throws Exception {
                 if (TextUtils.isEmpty(apkPath)) {
-                    singleSubscriber.onError(new IllegalArgumentException());
+                    maybeEmitter.onError(new IllegalArgumentException());
                 }
 
                 ResultBuilder builder = Result.newBuilder();
-
                 if (remount(Constants.PATH_SYSTEM, "rw")) {
                     File apkFile = new File(apkPath);
                     if (apkFile.exists()) {
-                        singleSubscriber.onSuccess(runCommand("rm '" + apkPath + "'"));
+                        maybeEmitter.onSuccess(runCommand("rm '" + apkPath + "'"));
                     } else {
-                        singleSubscriber.onSuccess(builder.setFailed().build());
+                        maybeEmitter.onSuccess(builder.setFailed().build());
                     }
                 } else {
-                    singleSubscriber.onSuccess(builder.setFailed().build());
+                    maybeEmitter.onSuccess(builder.setFailed().build());
                 }
+
+                maybeEmitter.onComplete();
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
 
@@ -600,7 +581,7 @@ public class RootManager {
     }
 
     /**
-     * Copy a file into destination dir.
+     * Copy a file into the destination dir.
      *
      * @param source         the source file path.
      * @param destinationDir the destination dir path.
@@ -720,50 +701,37 @@ public class RootManager {
      * @return the output messages wrapped in {@link Observable}
      */
     public Observable<String> observeRunCommand(final String command) {
-        return Observable.create(new Observable.OnSubscribe<String>() {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(final Subscriber<? super String> subscriber) {
+            public void subscribe(final ObservableEmitter<String> observableEmitter)
+                    throws Exception {
                 if (TextUtils.isEmpty(command)) {
-                    subscriber.onError(new IllegalArgumentException());
+                    observableEmitter.onError(new IllegalArgumentException());
                 }
 
                 final Command commandImpl = new Command(command) {
                     @Override
                     public void onUpdate(int id, String message) {
-                        subscriber.onNext(message);
+                        observableEmitter.onNext(message);
                     }
 
                     @Override
                     public void onFinished(int id) {
-                        subscriber.onCompleted();
+                        observableEmitter.onComplete();
                     }
                 };
-
-                subscriber.add(new Subscription() {
-                    @Override
-                    public void unsubscribe() {
-                        if (!commandImpl.isFinished()) {
-                            commandImpl.terminate();
-                        }
-                    }
-
-                    @Override
-                    public boolean isUnsubscribed() {
-                        return false;
-                    }
-                });
 
                 try {
                     Shell.startRootShell().add(commandImpl).waitForFinish();
                 } catch (Exception e) {
-                    subscriber.onError(e);
+                    observableEmitter.onError(e);
                 }
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
-     * Get screen shot.
+     * Take a screenshot
      *
      * @param path the path with file name and extend name.
      * @return the operation result.
@@ -779,8 +747,9 @@ public class RootManager {
         return res.getResult();
     }
 
+
     /**
-     * Record screen for 30s. This function is ONLY supported on Android 4.4 and upper.
+     * Record the screen for 30s. This function is ONLY supported on Android 4.4 and upper.
      *
      * @param path the path with file name and extend name.
      * @return the operation result.
