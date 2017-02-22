@@ -1,9 +1,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              tools:context=".MainActivity">
 
     <ToggleButton
         android:id="@+id/btnRooted"
@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:enabled="false"
         android:textOff="@string/toggle_unrooted"
-        android:textOn="@string/toggle_rooted" />
+        android:textOn="@string/toggle_rooted"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,13 +24,13 @@
             android:layout_height="match_parent"
             android:ems="10"
             android:hint="@string/hit_apk_path"
-            android:inputType="text" />
+            android:inputType="text"/>
 
         <Button
             android:id="@+id/bntInstallPackage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_install" />
+            android:text="@string/btn_install"/>
     </LinearLayout>
 
     <LinearLayout
@@ -44,13 +44,13 @@
             android:layout_height="match_parent"
             android:ems="10"
             android:hint="@string/hit_package_name"
-            android:inputType="text" />
+            android:inputType="text"/>
 
         <Button
             android:id="@+id/btnUninstallPackage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_uninstall" />
+            android:text="@string/btn_uninstall"/>
     </LinearLayout>
 
     <LinearLayout
@@ -62,22 +62,22 @@
             android:id="@+id/btnScreenShot"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_screen_cap"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:text="@string/btn_screen_cap"/>
 
         <Button
             android:id="@+id/btnScreenRecord"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_screen_record"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:text="@string/btn_screen_record"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/btnRestart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/btn_restart" />
+        android:text="@string/btn_restart"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -90,14 +90,14 @@
             android:layout_height="match_parent"
             android:ems="10"
             android:inputType="text"
-            android:text="@string/txt_default_command" />
+            android:text="@string/txt_default_command"/>
 
         <Button
             android:id="@+id/btnRunCommand"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/btn_run_command" />
+            android:text="@string/btn_run_command"/>
     </LinearLayout>
 
     <LinearLayout
@@ -111,14 +111,14 @@
             android:layout_height="match_parent"
             android:ems="10"
             android:inputType="text"
-            android:text="@string/txt_default_path" />
+            android:text="@string/txt_default_path"/>
 
         <Button
             android:id="@+id/btnRemount"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/btn_remount" />
+            android:text="@string/btn_remount"/>
     </LinearLayout>
 
     <TextView
@@ -129,6 +129,6 @@
         android:scrollbars="vertical"
         android:singleLine="false"
         android:text="@string/txt_log_out"
-        android:textColor="@android:color/primary_text_dark" />
+        android:textColor="@android:color/primary_text_dark"/>
 
 </LinearLayout>
