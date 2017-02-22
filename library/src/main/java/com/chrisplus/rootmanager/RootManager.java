@@ -1,5 +1,7 @@
 package com.chrisplus.rootmanager;
 
+import android.text.TextUtils;
+
 import com.chrisplus.rootmanager.container.Command;
 import com.chrisplus.rootmanager.container.Result;
 import com.chrisplus.rootmanager.container.Result.ResultBuilder;
@@ -7,8 +9,6 @@ import com.chrisplus.rootmanager.container.Shell;
 import com.chrisplus.rootmanager.exception.PermissionException;
 import com.chrisplus.rootmanager.utils.Remounter;
 import com.chrisplus.rootmanager.utils.RootUtils;
-
-import android.text.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,15 +21,9 @@ import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleObserver;
-import io.reactivex.SingleOnSubscribe;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Cancellable;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.reactivex.internal.operators.single.SingleSubscribeOn;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -724,7 +718,7 @@ public class RootManager {
                 observableEmitter.setDisposable(new Disposable() {
                     @Override
                     public void dispose() {
-                        if(! commandImpl.isFinished()){
+                        if (!commandImpl.isFinished()) {
                             commandImpl.terminate();
                         }
                     }
