@@ -721,6 +721,19 @@ public class RootManager {
                     }
                 };
 
+                observableEmitter.setDisposable(new Disposable() {
+                    @Override
+                    public void dispose() {
+                        if(! commandImpl.isFinished()){
+                            commandImpl.terminate();
+                        }
+                    }
+
+                    @Override
+                    public boolean isDisposed() {
+                        return false;
+                    }
+                });
                 try {
                     Shell.startRootShell().add(commandImpl).waitForFinish();
                 } catch (Exception e) {
