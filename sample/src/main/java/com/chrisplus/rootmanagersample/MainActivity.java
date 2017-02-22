@@ -71,7 +71,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (RootManager.getInstance().hasRooted()) {
+        if (RootManager.getInstance().isRootAvailable()) {
             grantButton.setEnabled(true);
         } else {
             grantButton.setEnabled(false);
