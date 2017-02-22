@@ -127,7 +127,6 @@
         android:layout_height="match_parent"
         android:background="@android:color/darker_gray"
         android:scrollbars="vertical"
-        android:singleLine="false"
         android:text="@string/txt_log_out"
         android:textColor="@android:color/primary_text_dark"/>
 
