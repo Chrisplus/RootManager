@@ -80,12 +80,12 @@ public class RootManager {
     public boolean isRootAvailable() {
         if (hasRooted == null || hasRooted == false) {
             hasRooted = false;
-
-            for (String path : RootUtils.getPath()) {
+            List<String> paths = RootUtils.getPath();
+            for (String path : paths) {
                 if (path.endsWith(File.pathSeparator)) {
                     path = path + File.pathSeparator;
                 }
-                File su = new File(path + "su");
+                File su = new File(path + "/su");
 
                 if (su.exists()) {
                     hasRooted = true;
